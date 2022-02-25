@@ -243,28 +243,6 @@ class CustomBrownianIntegrator(ThermostatedIntegrator):
         else:
             return work
 
-    def get_shadow_work(self, dimensionless=False):
-        """Get the current accumulated shadow work.
-
-        Parameters
-        ----------
-        dimensionless : bool, optional, default=False
-           If specified, the work is returned in reduced (kT) unit.
-
-        Returns
-        -------
-        work : unit.Quantity or float
-           If dimensionless=True, the protocol work in kT (float).
-           Otherwise, the unit-bearing protocol work in units of energy.
-        """
-        if not self._measure_shadow_work:
-            raise Exception("This integrator must be constructed with 'measure_shadow_work=True' to measure shadow work.")
-        return self._get_energy_with_units("shadow_work", dimensionless=dimensionless)
-
-
-    @property
-    def shadow_work(self):
-        return self.get_shadow_work()
 
     def get_heat(self, dimensionless=False):
         """Get the current accumulated heat.
