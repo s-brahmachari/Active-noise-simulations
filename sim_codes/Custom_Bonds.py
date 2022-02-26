@@ -2,28 +2,71 @@ from OpenMiChroM.ChromDynamics import MiChroM
 import numpy as np
 import pandas as pd
 
-def addHarmonicBond(self, i, j, kb=0.1,d=1.):
+def HarmonicRepulsion(self, k0=10.0, r0=1.0):
 
     R"""
-    Adds bonds between loci :math:`i` and :math:`j` 
+    Non-bonded Repulsion between monomers using harmonic force
+
+    Args:
+        k0 (float, required):
+            stiffness of the repulsive potential
+        r0 (float, required):
+            distance below which repulsion kicks in
+
+    """
+
+    Harmonic_repel_energy=("0.5 * k_repel * (r - r_hard)^2 * step(r_hard - r)")
+    Harmonic_repel_fg = self.mm.CustomNonbondedForce(Harmonic_repel_energy)
+    Harmonic_repel_fg.addGlobalParameter("k_repel", k0)
+    Harmonic_repel_fg.addGlobalParameter("r_hard", r0)
+    Harmonic_repel_fg.setCutoffDistance(3.0)
+
+    for ni in range(self.N):
+        Harmonic_repel_fg.addParticle(())
+    self.forceDict['HarmonicRepulsion']=Harmonic_repel_fg
+
+
+def LJRepulsion(self,):
+
+    R"""
+    Non-bonded Repulsion between monomers using 1/r^12 (Lennard Jones) potential
+
+    """
+
+    LJ_repel_energy=("4.0 * Epsi * (Sig / r)^12")
+    LJ_repel_fg=self.mm.CustomNonbondedForce(LJ_repel_energy)
+    LJ_repel_fg.addGlobalParameter("Epsi", 1.0)
+    LJ_repel_fg.addGlobalParameter("Sig", 1.0)
+    LJ_repel_fg.setCutoffDistance(3.0)
+
+    for ni in range(self.N):
+        LJ_repel_fg.addParticle(())
+
+    self.forceDict["LJRepulsion"]=LJ_repel_fg
+
+
+def HarmonicBond(self, i, j, kb=0.1,d=1.):
+
+    R"""
+    Adds a bonded interaction between loci :math:`i` and :math:`j` 
 
     Args:
 
-        kfb (float, required):
-            Bond coefficient. (Default value = 30.0).
+        kb (float, required):
+            Stiffness of the bonding potential
         i (int, required):
             Locus index **i**.
         j (int, required):
             Locus index **j**
-      """
-    d=d * self.Sigma * self.length_scale
-    
-    
+        d (float, required):
+            Equilibrium bond length
+    """
+
     if "HarmonicBond" not in list(self.forceDict.keys()):
-        force = ("0.5 * k_har * (r - r0_har) * (r - r0_har)")
+        force = ("0.5 * k_bond * (r - r_eq) * (r - r_eq)")
         bondforceGr = self.mm.CustomBondForce(force)
-        bondforceGr.addGlobalParameter("k_har", kb)
-        bondforceGr.addGlobalParameter("r0_har", d)
+        bondforceGr.addGlobalParameter("k_bond", kb)
+        bondforceGr.addGlobalParameter("r_eq", d)
 
         self.forceDict["HarmonicBond"] = bondforceGr
 
@@ -34,7 +77,6 @@ def addHarmonicBond(self, i, j, kb=0.1,d=1.):
 
 
 def addCustomFENEBond(self, i, j, eh=0.01, kfb=0.1):
-    eh=eh * self.Epsilon
     
     if "CustomFENEBond" not in list(self.forceDict.keys()):
         force = ("- 0.5 * kfb * r0 * r0 * log(1-(r/r0)*(r/r0)) + (4 * e * ((s/r)^12 - (s/r)^6) + e) * step(cut - r)")
@@ -166,9 +208,91 @@ def set_activity(self,F_act=1,particle_list=[]):
 
     return True
 
+def TypesAdhesionGaussian(self, mu=4.0, rc=1.0, TypesTable=None):
+    R"""
+    Adds the type-to-type potential using custom values for interactions between the chromatin types. 
+    The interaction potential is a Gaussian well of width 1/sqrt(mu) centered at rc
+    
+    The function receives a txt/TSV/CSV file containing the upper triangular matrix of the type-to-type interactions. 
+    A file example can be found `here <https://www.ndb.rice.edu>`__.
+    
+    +---+------+-------+-------+
+    |   |   A  |   B   |   C   |
+    +---+------+-------+-------+
+    | A | -0.2 | -0.25 | -0.15 |
+    +---+------+-------+-------+
+    | B |      |  -0.3 | -0.15 |
+    +---+------+-------+-------+
+    | C |      |       | -0.35 |
+    +---+------+-------+-------+
+    
+    Args:
+
+        mu (float, required):
+            Parameter that controls depth of the Gaussian well
+        rc (float, required):
+            Parmater that conrols the center of the Gaussian well
+        TypesTable (file, required):
+            A txt/TSV/CSV file containing the upper triangular matrix of the type-to-type interactions. (Default value: :code:`None`).
 
 
-def addCustomTypes(self, name="CustomTypes", mu=3, rc = 1.5, TypesTable=None,):
+    """
+    def _types_Letter2number(self, header_types):
+        R"""
+        Internal function for indexing unique chromatin types.
+        """
+        type2number = {}
+        for i,t in enumerate(header_types):
+            type2number[t] = i
+        # print(type2number)
+        # print(self.type_list_letter)
+        for bead in self.type_list_letter:
+            self.type_list.append(type2number[bead])
+        # print(self.type_list)
+
+
+    self.metadata["CrossLink"] = repr({"mu": mu})
+    if not hasattr(self, "type_list"):
+            self.type_list = self.random_ChromSeq(self.N)
+
+    energy = "mapType(t1,t2) * exp(-(r-r_center)^2 / var_r)"
+    
+    crossLP = self.mm.CustomNonbondedForce(energy)
+
+    crossLP.addGlobalParameter('var_r', 1./mu)
+    crossLP.addGlobalParameter('r_center', rc)
+    crossLP.setCutoffDistance(3.0)
+
+    tab = pd.read_csv(TypesTable, sep=None, engine='python')
+
+    header_types = list(tab.columns.values)
+
+    if not set(self.diff_types).issubset(set(header_types)):
+        errorlist = []
+        for i in self.diff_types:
+            if not (i in set(header_types)):
+                errorlist.append(i)
+        raise ValueError("Types: {} are not present in TypesTables: {}\n".format(errorlist, header_types))
+
+    diff_types_size = len(header_types)
+    lambdas = np.triu(tab.values) + np.triu(tab.values, k=1).T
+    lambdas = list(np.ravel(lambdas))
+        
+    fTypes = self.mm.Discrete2DFunction(diff_types_size,diff_types_size,lambdas)
+    crossLP.addTabulatedFunction('mapType', fTypes) 
+        
+    _types_Letter2number(self,header_types)
+    crossLP.addPerParticleParameter("t")
+
+    for i in range(self.N):
+            value = [float(self.type_list[i])]
+            crossLP.addParticle(value)
+            
+            
+    self.forceDict['TypesAdhesionGausian'] = crossLP
+
+
+def addCustomTypes(self, name="CustomTypes", mu=3, rc = 1.8, TypesTable=None,):
     R"""
     Adds the type-to-type potential using custom values for interactions between the chromatin types. The parameters :math:`\mu` (mu) and rc are part of the probability of crosslink function :math:`f(r_{i,j}) = \frac{1}{2}\left( 1 + tanh\left[\mu(r_c - r_{i,j}\right] \right)`, where :math:`r_{i,j}` is the spatial distance between loci (beads) *i* and *j*.
     
@@ -248,7 +372,6 @@ def addCustomTypes(self, name="CustomTypes", mu=3, rc = 1.5, TypesTable=None,):
     for i in range(self.N):
             value = [float(self.type_list[i])]
             crossLP.addParticle(value)
-            # print(jj)
             
             
     self.forceDict[name] = crossLP
