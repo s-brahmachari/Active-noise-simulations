@@ -75,6 +75,19 @@ def HarmonicBond(self, i, j, kb=0.1,d=1.):
 
     return True
 
+def addFENEBond(self, i, j, kfb=0.1):
+    
+    if "FENEBond" not in list(self.forceDict.keys()):
+        force = ("-0.5 * kfb * r0 * r0 * log(1-(r/r0)*(r/r0)) * step(r0-r) ")
+        bondforceGr = self.mm.CustomBondForce(force)
+        bondforceGr.addGlobalParameter("kfb", kfb)
+        bondforceGr.addGlobalParameter("r0", 2) 
+
+        self.forceDict["FENEBond"] = bondforceGr
+
+    self.forceDict["FENEBond"].addBond(int(i), int(j), [])
+    
+    return True
 
 def addCustomFENEBond(self, i, j, eh=0.01, kfb=0.1):
     
