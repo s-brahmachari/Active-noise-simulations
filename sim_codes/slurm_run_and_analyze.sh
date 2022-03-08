@@ -1,7 +1,7 @@
 #!/bin/bash -l
 
-save_dest=~/Active_fluctuations/data/ROUSE_chain_confined_N100
-run_code_home=~/Active_fluctuations/sim_codes
+save_dest=~/Active_fluctuations/data/ROUSE_chain_confined_PD
+run_code_home=~/Active_fluctuations/Active-noise-simulations/sim_codes
 analyze_code_home=~/Active_fluctuations/analysis_codes
 
 #script=run_sims_dumbbell.py
@@ -18,7 +18,7 @@ Na=1200
 kr=30
 # kb=10.0
 Esoft=0
-nblocks=920000
+nblocks=1020000
 blocksize=100
 dt=0.001
 #rm -r $path0
@@ -29,56 +29,55 @@ ii=0
 # for Esoft in 0; do
 # mkdir $save_dest/Esoft_$Esoft
 
-for T in 0.5; do
-#mkdir $save_dest/T_$T
-for F in 0.0 0.1 1.0; do
-#mkdir $save_dest/T_$T/F_$F
+for T in 0.5 1.0 1.5 2.0 2.5; do
+mkdir $save_dest/T_$T
+for F in 0.0; do
+mkdir $save_dest/T_$T/F_$F
 
-for Ta in 1.0 10.0 50.0; do
-#mkdir $save_dest/T_$T/F_$F/Ta_$Ta
+for Ta in 0.0; do
+mkdir $save_dest/T_$T/F_$F/Ta_$Ta
 
-for R0 in 10 100; do
-#mkdir $save_dest/T_$T/F_$F/Ta_$Ta/R0_$R0
+for R0 in 10.0 500.0; do
+mkdir $save_dest/T_$T/F_$F/Ta_$Ta/R0_$R0
 
-for kb in 5 20; do
-#mkdir $save_dest/T_$T/F_$F/Ta_$Ta/R0_$R0/kb_$kb
+for kb in 10.0; do
+mkdir $save_dest/T_$T/F_$F/Ta_$Ta/R0_$R0/kb_$kb
 
 for replica in 1; do 
 sim_home=$save_dest/T_$T/F_$F/Ta_$Ta/R0_$R0/kb_$kb/replica_$replica
 
-#mkdir $sim_home
+mkdir $sim_home
 
 cd $sim_home
-#cp $run_code_home/$run_script $sim_home
-#cp $run_code_home/$seq $sim_home
-#cp $run_code_home/$top $sim_home
-#cp $run_code_home/Custom_Bonds.py $sim_home 
-#cp $run_code_home/Custom_integrators.py $sim_home
+cp $run_code_home/$run_script $sim_home
+cp $run_code_home/input_files/$seq $sim_home
+cp $run_code_home/input_files/$top $sim_home
+cp $run_code_home/ActivePolymer.py $sim_home 
 
-cp $analyze_code_home/$analyze_script $sim_home
+# cp $analyze_code_home/$analyze_script $sim_home
 
 # cp $code_home/type_table.csv ./
 # cp $code_home/$finit ./
 
 python_venv="#!/bin/bash -l
 source ~/venv/containers/openmm/bin/activate
-# python3 $run_script -name $name -dt $dt -ftop $top  -fseq $seq -rep $replica -Ta $Ta -Na $Na -F $F -temp $T -kb $kb -Esoft $Esoft -nblocks $nblocks -blocksize $blocksize -R0 $R0 -finit $finit -kr $kr
+python3 $run_script -name $name -dt $dt -ftop $top  -fseq $seq -rep $replica -Ta $Ta -Na $Na -F $F -temp $T -kb $kb -Esoft $Esoft -nblocks $nblocks -blocksize $blocksize -R0 $R0 -finit $finit -kr $kr
 
-python3 $analyze_script -top $top -s $save_dest/analysis/ -if_RDP 1
+# python3 $analyze_script -top $top -s $save_dest/analysis/ -if_RDP 1
 "
 echo "$python_venv">"python_venv.sh"
 chmod u+x "python_venv.sh"
 
 slurm_file_content="#!/bin/bash -l
 
-#SBATCH --job-name=gyr_2
+#SBATCH --job-name=RCpass
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
 #SBATCH --tasks-per-node=1
 #SBATCH --mem=30G
 #SBATCH --export=ALL
-#SBATCH --gres=gpu:0
-#SBATCH --time=5:00:00
+#SBATCH --gres=gpu:1
+#SBATCH --time=15:00:00
 
 module load singularity
 

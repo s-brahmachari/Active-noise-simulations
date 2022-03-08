@@ -2,14 +2,11 @@
 #Import libraries  #
 #==================#
 import argparse as arg
-from OpenMiChroM.ChromDynamics import MiChroM
-from openmmtools import integrators
-from simtk import unit
-from Custom_integrators import CustomBrownianIntegrator
-import Custom_Bonds
-import numpy as np
+import ActivePolymer
 import time
 start=time.time()
+
+
 #==============================#
 #Parse command line arguments  #
 #==============================#
@@ -58,109 +55,24 @@ except(ValueError) as msg:
     print('Critical ERROR in simulation parameters!! Exiting!')
     pass
 
-#==========================#
-#Initialize Michrom Class  #
-#==========================#
-sim=MiChroM(name=savename, velocity_reinitialize=False)
+sim=ActivePolymer.ActivePolymer(
+    name=savename, 
+    time_step=args.dt, 
+    collision_rate=args.gamma, 
+    temperature=T, 
+    active_corr_time=t_corr, 
+    activity_amplitude=F,
+    outpath=args.opath, 
+    init_struct=None, 
+    seq_file=args.fseq, 
+    active_particles=[],
+    )
 
-#Specify integrator
-integrator=CustomBrownianIntegrator(
-                    timestep=args.dt * unit.picoseconds, 
-                    collision_rate=args.gamma / unit.picoseconds,
-                    temperature=T * unit.kelvin,measure_heat=False,
-                    noise_corr=t_corr * unit.picoseconds,
-                    )
+ActivePolymer.addHarmonicBonds(sim, top_file=args.ftop, kb=args.kb, d=1.0)
 
-sim.setup(platform="hip",integrator=integrator,)
-sim.saveFolder(args.opath)
+ActivePolymer.addRadialConfinement(sim, R0=args.R0, method='FlatBottomHarmonic', kr=args.kr)
 
-#Initial structure (spiral by default)
-if '.npy' not in args.finit:
-    chrm=sim.create_springSpiral(ChromSeq=args.fseq)
-else:
-    chrm=np.load(args.finit)
-sim.loadStructure(chrm,center=True)
-sim._translate_type(args.fseq)
-
-#Initialize save structure
-#sim.saveStructure(filename=savename+'_initpos',mode='gro')
-#sim.initStorage('traj_'+savename, mode='w')
-
-#===================#
-# Add activity      #
-#===================#
-Custom_Bonds.set_activity(sim,F_act=F, particle_list=range(sim.N))
-
-
-#==================#
-#Add interactions  #
-#==================#
-
-##---------#
-##polymers #
-##---------#
-
-#chromosome topology
-chrm_top=np.loadtxt(args.ftop, delimiter=' ', dtype=int)
-
-##add bonds between nearest neighbors
-for ii in range(sim.N-1):
-    #skip bonds between different chromosomes
-    if ii in chrm_top[:,1]: continue
-    Custom_Bonds.addFENEBond(sim, ii, ii+1, kfb=args.kb)
-    #Custom_Bonds.addHarmonicBond(sim, ii, ii+1, kb=args.kb, d=0) 
-
-## circularize if chromosome is circular
-#for xx in chrm_top:
-#    if xx[2]==1: 
-#        #addTanhHarmonicBond(sim, xx[0], xx[1], eh=20, kb=args.kb)
-#        addHarmonicBond(sim, xx[0], xx[1], kb=args.kb,d=1)
-
-
-##----------#
-##Dumbbells #
-##----------#
-#for ii in range(sim.N-1):
-#    if ii%2==0:
-#        addHarmonicBond(sim, ii, ii+1, kb=args.kb,d=1)
-
-
-#=====================#
-# Radial confinement  #
-#=====================#
-
-Custom_Bonds.addRadialConfinement(sim, vol_frac=args.vol_frac, R0=args.R0, FlatBottomHarmonic=True, kr=args.kr)
-
-#=====================#
-# Soft-core repulsion #
-#=====================#
-# Custom_Bonds.addTanhRepulsion(sim, es=Esoft)
-
-#=========================#
-# Inter-monomer adhesion  #
-#=========================#
-# sim.addCustomTypes(mu=3, rc=1, TypesTable='type_table.csv')
-
-#===============#
-#Run simulation #
-#===============#
-positions=[]
-for ii, _ in enumerate(range(args.nblocks)):
-    sim.runSimBlock(args.blocksize)
-    #sim.saveStructure()
-    if ii<20000: continue
-    state = sim.context.getState(getPositions=True,
-            getVelocities=False, getEnergy=False)
-    #vel = state.getVelocities(asNumpy=True)#/unit.sqrt(unit.kilojoule_per_mole / mass)
-    positions.append(state.getPositions(asNumpy=True))
-    
-    if ii%int(args.nblocks*0.1)==0 and ii>0==0:
-        np.save(args.opath+'traj_'+savename+'_positions.npy',np.array(positions))
-#save cndb file
-#sim.storage[0].close()
-
-#np.save(args.opath+savename+'_velocities.npy',Velocities)
-np.save(args.opath+'traj_'+savename+'_positions.npy',np.array(positions))
+ActivePolymer.runSims(sim, nblocks=args.nblocks, blocksize=args.blocksize, )
 
 print('\n\m/Finished!\m/\nSaved trajectory at: {}'.format(args.opath))
 print('******\nTotal run time: {:.2f} secs\n******'.format(time.time()-start))
