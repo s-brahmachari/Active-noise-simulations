@@ -29,15 +29,20 @@ ii=0
 # for Esoft in 0; do
 # mkdir $save_dest/Esoft_$Esoft
 
-for T in 0.5 1.0 1.5 2.0 2.5; do
+for T in 100.0 150.0 200.0 250.0 300.0; do
 mkdir $save_dest/T_$T
-for F in 0.0; do
+
+#0.02 0.2 2.0
+for F in 0.01 0.1 1.0 10.0; do
+rm -r $save_dest/T_$T/F_$F
 mkdir $save_dest/T_$T/F_$F
 
-for Ta in 0.0; do
+#0.1 2.0 20.0 200.0
+for Ta in 1.0 10.0 100.0 1000.0; do
 mkdir $save_dest/T_$T/F_$F/Ta_$Ta
 
-for R0 in 10.0 500.0; do
+#10.0
+for R0 in 500.0; do
 mkdir $save_dest/T_$T/F_$F/Ta_$Ta/R0_$R0
 
 for kb in 10.0; do
@@ -70,14 +75,14 @@ chmod u+x "python_venv.sh"
 
 slurm_file_content="#!/bin/bash -l
 
-#SBATCH --job-name=RCpass
+#SBATCH --job-name=RCact
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
 #SBATCH --tasks-per-node=1
-#SBATCH --mem=30G
+#SBATCH --mem=20G
 #SBATCH --export=ALL
 #SBATCH --gres=gpu:1
-#SBATCH --time=15:00:00
+#SBATCH --time=10:00:00
 
 module load singularity
 

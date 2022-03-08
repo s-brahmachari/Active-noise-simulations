@@ -65,7 +65,7 @@ sim=ActivePolymer.ActivePolymer(
     outpath=args.opath, 
     init_struct=None, 
     seq_file=args.fseq, 
-    active_particles=[],
+    active_particles=range(Na),
     )
 
 ActivePolymer.addHarmonicBonds(sim, top_file=args.ftop, kb=args.kb, d=1.0)
