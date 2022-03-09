@@ -2,7 +2,6 @@ import AnalyzeTrajectory
 import numpy as np
 import argparse as arg
 import time
-import sys
 
 #==============================#
 #Parse command line arguments  #
@@ -25,9 +24,6 @@ start=time.time()
 traj=AnalyzeTrajectory.AnalyzeTrajectory(datapath=args.datapath, datafile=args.datafile, 
                             top_file=args.top, discard_init_steps=20000)
 savename=args.savedest+traj.savename
-
-traj.xyz=traj.xyz[:20000,:,:]
-traj.T=traj.xyz.shape[0]
 
 if args.gyr:
     gyr_eigs=traj.compute_GyrationTensorEigs()

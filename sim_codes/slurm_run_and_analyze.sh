@@ -4,11 +4,6 @@ save_dest=~/Active_fluctuations/data/ROUSE_chain_confined_PD
 run_code_home=~/Active_fluctuations/Active-noise-simulations/sim_codes
 analyze_code_home=~/Active_fluctuations/analysis_codes
 
-#script=run_sims_dumbbell.py
-run_script=run_sims.py
-# analyze_script=Rouse_mode_correlations.py
-analyze_script=RDP_RG_MSD_polymer.py
-
 name=Rouse_chain
 seq=chr_seq.txt
 top=chromosome_top.txt
@@ -30,28 +25,30 @@ ii=0
 # mkdir $save_dest/Esoft_$Esoft
 
 for T in 100.0 150.0 200.0 250.0 300.0; do
-mkdir $save_dest/T_$T
+# mkdir $save_dest/T_$T
 
 #0.02 0.2 2.0
-for F in 0.01 0.1 1.0 10.0; do
-rm -r $save_dest/T_$T/F_$F
-mkdir $save_dest/T_$T/F_$F
+# for F in 0.01 0.1 1.0 10.0; do
+for F in 0.0; do
+#rm -r $save_dest/T_$T/F_$F
+# mkdir $save_dest/T_$T/F_$F
 
 #0.1 2.0 20.0 200.0
-for Ta in 1.0 10.0 100.0 1000.0; do
-mkdir $save_dest/T_$T/F_$F/Ta_$Ta
+# for Ta in 1.0 10.0 100.0 1000.0; do
+for Ta in 1.0; do
+# mkdir $save_dest/T_$T/F_$F/Ta_$Ta
 
 #10.0
 for R0 in 500.0; do
-mkdir $save_dest/T_$T/F_$F/Ta_$Ta/R0_$R0
+# mkdir $save_dest/T_$T/F_$F/Ta_$Ta/R0_$R0
 
 for kb in 10.0; do
-mkdir $save_dest/T_$T/F_$F/Ta_$Ta/R0_$R0/kb_$kb
+# mkdir $save_dest/T_$T/F_$F/Ta_$Ta/R0_$R0/kb_$kb
 
 for replica in 1; do 
 sim_home=$save_dest/T_$T/F_$F/Ta_$Ta/R0_$R0/kb_$kb/replica_$replica
 
-mkdir $sim_home
+# mkdir $sim_home
 
 cd $sim_home
 cp $run_code_home/$run_script $sim_home
@@ -59,30 +56,31 @@ cp $run_code_home/input_files/$seq $sim_home
 cp $run_code_home/input_files/$top $sim_home
 cp $run_code_home/ActivePolymer.py $sim_home 
 
-# cp $analyze_code_home/$analyze_script $sim_home
+cp $run_code_home/AnalyzeTrajectory.py $sim_home
+cp $run_code_home/run_analyze.py $sim_home
 
 # cp $code_home/type_table.csv ./
 # cp $code_home/$finit ./
 
 python_venv="#!/bin/bash -l
 source ~/venv/containers/openmm/bin/activate
-python3 $run_script -name $name -dt $dt -ftop $top  -fseq $seq -rep $replica -Ta $Ta -Na $Na -F $F -temp $T -kb $kb -Esoft $Esoft -nblocks $nblocks -blocksize $blocksize -R0 $R0 -finit $finit -kr $kr
+# python3 run_sims.py -name $name -dt $dt -ftop $top  -fseq $seq -rep $replica -Ta $Ta -Na $Na -F $F -temp $T -kb $kb -Esoft $Esoft -nblocks $nblocks -blocksize $blocksize -R0 $R0 -finit $finit -kr $kr
 
-# python3 $analyze_script -top $top -s $save_dest/analysis/ -if_RDP 1
+python3 run_analyze.py -s $save_dest/analysis/ -RDP -gyr -bondlen
 "
 echo "$python_venv">"python_venv.sh"
 chmod u+x "python_venv.sh"
 
 slurm_file_content="#!/bin/bash -l
 
-#SBATCH --job-name=RCact
+#SBATCH --job-name=RCpasAnalyze
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
 #SBATCH --tasks-per-node=1
 #SBATCH --mem=20G
 #SBATCH --export=ALL
-#SBATCH --gres=gpu:1
-#SBATCH --time=10:00:00
+#SBATCH --gres=gpu:0
+#SBATCH --time=2:00:00
 
 module load singularity
 
