@@ -26,6 +26,9 @@ traj=AnalyzeTrajectory.AnalyzeTrajectory(datapath=args.datapath, datafile=args.d
                             top_file=args.top, discard_init_steps=20000)
 savename=args.savedest+traj.savename
 
+traj.xyz=traj.xyz[:20000,:,:]
+traj.T=traj.xyz.shape[0]
+
 if args.gyr:
     gyr_eigs=traj.compute_GyrationTensorEigs()
     np.save(savename+'_GyrEigs.npy', gyr_eigs)
