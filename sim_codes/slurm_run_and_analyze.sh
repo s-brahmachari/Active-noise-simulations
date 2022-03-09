@@ -51,10 +51,10 @@ sim_home=$save_dest/T_$T/F_$F/Ta_$Ta/R0_$R0/kb_$kb/replica_$replica
 # mkdir $sim_home
 
 cd $sim_home
-cp $run_code_home/$run_script $sim_home
-cp $run_code_home/input_files/$seq $sim_home
-cp $run_code_home/input_files/$top $sim_home
-cp $run_code_home/ActivePolymer.py $sim_home 
+#cp $run_code_home/run_sims.py $sim_home
+#cp $run_code_home/input_files/$seq $sim_home
+#cp $run_code_home/input_files/$top $sim_home
+#cp $run_code_home/ActivePolymer.py $sim_home 
 
 cp $run_code_home/AnalyzeTrajectory.py $sim_home
 cp $run_code_home/run_analyze.py $sim_home
@@ -66,7 +66,7 @@ python_venv="#!/bin/bash -l
 source ~/venv/containers/openmm/bin/activate
 # python3 run_sims.py -name $name -dt $dt -ftop $top  -fseq $seq -rep $replica -Ta $Ta -Na $Na -F $F -temp $T -kb $kb -Esoft $Esoft -nblocks $nblocks -blocksize $blocksize -R0 $R0 -finit $finit -kr $kr
 
-python3 run_analyze.py -s $save_dest/analysis/ -RDP -gyr -bondlen
+python3 run_analyze.py -s $save_dest/analysis/ -gyr -MSD -RDP -bondlen
 "
 echo "$python_venv">"python_venv.sh"
 chmod u+x "python_venv.sh"
