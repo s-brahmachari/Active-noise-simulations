@@ -1,12 +1,15 @@
 import AnalyzeTrajectory
 import numpy as np
 import argparse as arg
+import time
+import sys
 
 #==============================#
 #Parse command line arguments  #
 #==============================#
 parser=arg.ArgumentParser()
 parser.add_argument('-top',default=None,dest='top',type=str)
+parser.add_argument('-datapath',default='./',dest='datapath',type=str)
 parser.add_argument('-f',default=None,dest='datafile',type=str)
 parser.add_argument('-s',default='./',dest='savedest',type=str)
 parser.add_argument('-gyr',action='store_true')
@@ -17,6 +20,9 @@ parser.add_argument('-SXp',action='store_true')
 parser.add_argument('-bondlen',action='store_true')
 
 args=parser.parse_args()
+start=time.time()
+
+sys.path.append(args.datapath)
 
 traj=AnalyzeTrajectory.AnalyzeTrajectory(datafile=args.datafile, top_file=args.top, discard_init_steps=20000)
 savename=args.savedest+traj.savename
@@ -38,3 +44,9 @@ if args.MSD:
     np.save(savename+'_MSD.npy', msd)
 
 
+print('=====================')
+print("\m/Finished!!\m/")
+print('Saved data at {}'.format(args.savedest))
+print("--------------")
+print("Total run time: {:.0f} secs".format(time.time()-start))
+print("--------------")
