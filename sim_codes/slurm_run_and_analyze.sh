@@ -77,9 +77,9 @@ slurm_file_content="#!/bin/bash -l
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
 #SBATCH --tasks-per-node=1
-#SBATCH --mem=20G
+#SBATCH --mem=10G
 #SBATCH --export=ALL
-#SBATCH --gres=gpu:0
+#SBATCH --gres=gpu:1
 #SBATCH --time=6:00:00
 
 module load singularity
