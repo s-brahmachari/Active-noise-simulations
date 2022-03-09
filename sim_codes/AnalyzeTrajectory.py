@@ -129,19 +129,19 @@ class AnalyzeTrajectory():
         for chrm in self.top:
             eigs.append(gyr_tensor(self.xyz[:,chrm[0]:chrm[1]+1,:]))
         eigs=np.array(eigs)
-
+        flat_eigs=eigs.reshape(-1,3)
         #compute RG_hist
-        rg_vals=np.linalg.norm(eigs, axis=1)
+        rg_vals=np.linalg.norm(flat_eigs, axis=1)
         rg_hist,bin_edges=np.histogram(rg_vals, bins=np.arange(0,rg_vals.max(),1), density=True)
         rg_bins=0.5*(bin_edges[:-1]+bin_edges[1:])
         
         #compute asphericity
-        asph_vals = np.ravel(eigs[:,2] - 0.5*(eigs[:,0]+eigs[:,1]))
+        asph_vals = np.ravel(flat_eigs[:,2] - 0.5*(flat_eigs[:,0]+flat_eigs[:,1]))
         asph_hist,bin_edges=np.histogram(asph_vals, bins=np.arange(-0.1,asph_vals.max(),1), density=True)
         asph_bins=0.5*(bin_edges[:-1]+bin_edges[1:])
 
         #compute acylindricity
-        acyl_vals=np.ravel(eigs[:,1]-eigs[:,0])
+        acyl_vals=np.ravel(flat_eigs[:,1]-flat_eigs[:,0])
         acyl_hist,bin_edges=np.histogram(acyl_vals, bins=np.arange(-0.1,acyl_vals.max(),1), density=True)
         acyl_bins=0.5*(bin_edges[:-1]+bin_edges[1:])
 
