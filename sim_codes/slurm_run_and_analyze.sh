@@ -28,14 +28,14 @@ for T in 100.0 150.0 200.0 250.0 300.0; do
 # mkdir $save_dest/T_$T
 
 #0.02 0.2 2.0
-# for F in 0.01 0.1 1.0 10.0; do
-for F in 0.0; do
+for F in 0.01 0.1 1.0 10.0; do
+# for F in 0.0; do
 #rm -r $save_dest/T_$T/F_$F
 # mkdir $save_dest/T_$T/F_$F
 
 #0.1 2.0 20.0 200.0
-# for Ta in 1.0 10.0 100.0 1000.0; do
-for Ta in 1.0; do
+for Ta in 1.0 10.0 100.0 1000.0; do
+# for Ta in 1.0; do
 # mkdir $save_dest/T_$T/F_$F/Ta_$Ta
 
 #10.0
@@ -73,14 +73,14 @@ chmod u+x "python_venv.sh"
 
 slurm_file_content="#!/bin/bash -l
 
-#SBATCH --job-name=RCpasAnalyze
+#SBATCH --job-name=RCactAnalyze
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
 #SBATCH --tasks-per-node=1
 #SBATCH --mem=20G
 #SBATCH --export=ALL
 #SBATCH --gres=gpu:0
-#SBATCH --time=2:00:00
+#SBATCH --time=6:00:00
 
 module load singularity
 
