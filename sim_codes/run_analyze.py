@@ -26,8 +26,9 @@ traj=AnalyzeTrajectory.AnalyzeTrajectory(datapath=args.datapath, datafile=args.d
 savename=args.savedest+traj.savename
 
 if args.gyr:
-    gyr_eigs=traj.compute_GyrationTensorEigs()
+    (gyr_eigs, rg, asph, acyl)=traj.compute_GyrationTensor()
     np.save(savename+'_GyrEigs.npy', gyr_eigs)
+    np.savez(savename+'_shape_descriptors.npz',rg=rg,asph=asph,acyl=acyl)
 
 if args.RDP:
     rad_dens_hist, bins = traj.compute_RadNumDens()

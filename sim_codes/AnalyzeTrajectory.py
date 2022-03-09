@@ -112,7 +112,7 @@ class AnalyzeTrajectory():
         except (IOError,):
             print("--------\nERROR!!! Could not load trajectory or top file. EXITING!\n-------")
             
-    def compute_GyrationTensorEigs(self):
+    def compute_GyrationTensor(self):
 
         def gyr_tensor(X):
             rcm=np.mean(X, axis=1,keepdims=True)
@@ -128,10 +128,26 @@ class AnalyzeTrajectory():
         eigs=[]
         for chrm in self.top:
             eigs.append(gyr_tensor(self.xyz[:,chrm[0]:chrm[1]+1,:]))
+        eigs=np.array(eigs)
+
+        #compute RG_hist
+        rg_vals=np.linalg.norm(eigs, axis=1)
+        rg_hist,bin_edges=np.histogram(rg_vals, bins=np.arange(0,rg_vals.max(),1), density=True)
+        rg_bins=0.5*(bin_edges[:-1]+bin_edges[1:])
+        
+        #compute asphericity
+        asph_vals = np.ravel(eigs[:,2] - 0.5*(eigs[:,0]+eigs[:,1]))
+        asph_hist,bin_edges=np.histogram(asph_vals, bins=np.arange(-0.1,asph_vals.max(),1), density=True)
+        asph_bins=0.5*(bin_edges[:-1]+bin_edges[1:])
+
+        #compute acylindricity
+        acyl_vals=np.ravel(eigs[:,1]-eigs[:,0])
+        acyl_hist,bin_edges=np.histogram(acyl_vals, bins=np.arange(-0.1,acyl_vals.max(),1), density=True)
+        acyl_bins=0.5*(bin_edges[:-1]+bin_edges[1:])
 
         print('done!\n', flush=True,)
 
-        return np.array(eigs)
+        return (np.array(eigs),(rg_hist, rg_bins),(asph_hist, asph_bins),(acyl_hist,acyl_bins))
             
     def compute_RG_chains(self):
         
@@ -189,7 +205,7 @@ class AnalyzeTrajectory():
                 # PAC_COM=np.vstack((PAC_COM,2*S2/S1))
         print('done!\n', flush=True)
 
-        return (msd,msd_COM)
+        return (msd_av,msd_COM)
         
     def compute_ModeAutocorr(self, modes=[1,2,4,7,10], chains=False):
 
@@ -265,6 +281,7 @@ class AnalyzeTrajectory():
                 center=np.array(center,dtype=float)
                 center_nd=np.tile(center,(self.xyz.shape[0],1,1))
                 rad_vals=np.ravel(np.linalg.norm(self.xyz-center_nd,axis=2))
+
 
             except (TypeError,ValueError):
                 print("FATAL ERROR!!\n Invalid 'center' for ref='custom'.\n\
