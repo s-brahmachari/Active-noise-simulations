@@ -130,14 +130,15 @@ class AnalyzeTrajectory():
             eigs.append(gyr_tensor(self.xyz[:,chrm[0]:chrm[1]+1,:]))
         eigs=np.array(eigs)
         flat_eigs=eigs.reshape(-1,3)
+
         #compute RG_hist
-        rg_vals=np.linalg.norm(flat_eigs, axis=1)
+        rg_vals=np.ravel(np.sqrt(np.sum(flat_eigs, axis=0)))
         rg_hist,bin_edges=np.histogram(rg_vals, bins=np.arange(0,rg_vals.max(),1), density=True)
         rg_bins=0.5*(bin_edges[:-1]+bin_edges[1:])
         
         #compute asphericity
         asph_vals = np.ravel(flat_eigs[:,2] - 0.5*(flat_eigs[:,0]+flat_eigs[:,1]))
-        asph_hist,bin_edges=np.histogram(asph_vals, bins=np.arange(-0.1,asph_vals.max(),1), density=True)
+        asph_hist,bin_edges=np.histogram(asph_vals, bins=np.logspace(-3,6,300), density=True)
         asph_bins=0.5*(bin_edges[:-1]+bin_edges[1:])
 
         #compute acylindricity
