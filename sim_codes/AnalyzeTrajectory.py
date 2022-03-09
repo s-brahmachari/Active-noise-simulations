@@ -132,7 +132,7 @@ class AnalyzeTrajectory():
         flat_eigs=eigs.reshape(-1,3)
 
         #compute RG_hist
-        rg_vals=np.ravel(np.sqrt(np.sum(flat_eigs, axis=0)))
+        rg_vals=np.ravel(np.sqrt(np.sum(flat_eigs, axis=1)))
         rg_hist,bin_edges=np.histogram(rg_vals, bins=np.arange(0,rg_vals.max(),1), density=True)
         rg_bins=0.5*(bin_edges[:-1]+bin_edges[1:])
         
