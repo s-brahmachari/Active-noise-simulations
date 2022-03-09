@@ -279,7 +279,12 @@ class AnalyzeTrajectory():
 
     def compute_BondLenDist(self,dx=0.1):
         print('Computing bond length distribution ... ', flush=True, end=' ')
-        bondlen_vals=np.ravel(np.linalg.norm(self.xyz[:,:-1,:] - self.xyz[:,1:,:], axis=2))
+
+        bondlen_vals=[]
+        for chrm in self.top:
+            bondlen_vals.append(np.linalg.norm(self.xyz[:,chrm[0]:chrm[1],:] - self.xyz[:,chrm[0]+1:chrm[1]+1,:], axis=2))
+
+        bondlen_vals=np.ravel(bondlen_vals)
         bins=np.arange(0,bondlen_vals.max()+1,dx)
         bondlen_hist, bin_edges=np.histogram(bondlen_vals, bins=bins, density=True)
         bin_mids=0.5*(bin_edges[1:]+bin_edges[:-1])
