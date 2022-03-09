@@ -22,9 +22,8 @@ parser.add_argument('-bondlen',action='store_true')
 args=parser.parse_args()
 start=time.time()
 
-sys.path.append(args.datapath)
-
-traj=AnalyzeTrajectory.AnalyzeTrajectory(datafile=args.datafile, top_file=args.top, discard_init_steps=20000)
+traj=AnalyzeTrajectory.AnalyzeTrajectory(datapath=args.datapath, datafile=args.datafile, 
+                            top_file=args.top, discard_init_steps=20000)
 savename=args.savedest+traj.savename
 
 if args.gyr:

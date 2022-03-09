@@ -1,6 +1,7 @@
 
 from OpenMiChroM.CndbTools import cndbTools
 import numpy as np
+import sys
 import os
 import time
 import argparse as arg
@@ -32,15 +33,15 @@ def _msd_fft(r):
 
 class AnalyzeTrajectory():
 
-    def __init__(self, datafile=None, top_file=None, discard_init_steps=0):
+    def __init__(self, datapath='./', datafile=None, top_file=None, discard_init_steps=0):
         try:
-            all_files=os.listdir('./')
-
+            all_files=os.listdir(datapath)
+            #print(all_files)
             #Check for topology file and load
             if top_file !=None:
                 print('=====================')
                 print('Loading topology file: ', top_file) 
-                chrm_top=np.loadtxt(top_file, delimiter=' ',dtype=int,)
+                chrm_top=np.loadtxt(datapath+top_file, delimiter=' ',dtype=int,)
 
             elif top_file==None:
                 count_top=sum(1 for ff in all_files if 'top.txt' in ff) 
@@ -54,13 +55,13 @@ class AnalyzeTrajectory():
                         if 'top.txt' in fname:
                             print('=====================')
                             print('Loading topology file: ', fname)
-                            chrm_top=np.loadtxt(fname,delimiter=' ',dtype=int,)
+                            chrm_top=np.loadtxt(datapath+fname,delimiter=' ',dtype=int,)
 
             #Check for trajectory file and load
             if datafile!=None:
                 if '.cndb' in datafile:
                     print('Loading .cndb trajectory: {} ...'.format(datafile))
-                    cndb_traj=cndbT.load(datafile)
+                    cndb_traj=cndbT.load(datapath+datafile)
                     all_traj = cndbTools.xyz(frames=[discard_init_steps,cndb_traj.Nframes,1],
                                 beadSelection='all', XYZ=[0,1,2])
                     savename='analyze_'+datafile.replace('.cndb','')
@@ -68,7 +69,7 @@ class AnalyzeTrajectory():
 
                 elif '.npy' in datafile:
                     print('Loading .npy trajectory: {} ...'.format(datafile))
-                    all_traj = np.load(datafile)[discard_init_steps:,:,:]
+                    all_traj = np.load(datapath+datafile)[discard_init_steps:,:,:]
                     savename='analyze_'+datafile.replace('.npy','')
 
 
@@ -81,7 +82,7 @@ class AnalyzeTrajectory():
                         for fname in all_files:
                             if 'positions.npy' in fname:
                                 print('Loading .npy trajectory: {} ...'.format(fname))
-                                all_traj=np.load(fname)[discard_init_steps:,:,:]
+                                all_traj=np.load(datapath+fname)[discard_init_steps:,:,:]
                                 savename='analyze_'+fname.replace('_positions.npy','')
 
                     else:
@@ -93,7 +94,7 @@ class AnalyzeTrajectory():
                     for fname in all_files:
                         if '.cndb' in fname:
                             print('Loading .cndb trajectory: {} ...'.format(fname))
-                            cndb_traj=cndbT.load(fname)
+                            cndb_traj=cndbT.load(datapath+fname)
                             all_traj = cndbT.xyz(frames=[discard_init_steps,cndb_traj.Nframes,1], 
                                     beadSelection='all', XYZ=[0,1,2])
                             savename='analyze_'+fname.replace('.cndb','')
@@ -277,7 +278,7 @@ class AnalyzeTrajectory():
         return (num_density, bin_mids)
 
     def compute_BondLenDist(self,dx=0.1):
-        print('Computing bond length distribution ... ', flust=True, end=' ')
+        print('Computing bond length distribution ... ', flush=True, end=' ')
         bondlen_vals=np.ravel(np.linalg.norm(self.xyz[:,:-1,:] - self.xyz[:,1:,:], axis=2))
         bins=np.arange(0,bondlen_vals.max()+1,dx)
         bondlen_hist, bin_edges=np.histogram(bondlen_vals, bins=bins, density=True)
