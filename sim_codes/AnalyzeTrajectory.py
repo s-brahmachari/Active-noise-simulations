@@ -40,7 +40,7 @@ class AnalyzeTrajectory():
             #Check for topology file and load
             if top_file !=None:
                 print('=====================')
-                print('Loading topology file: ', top_file) 
+                print('Loading topology file: {}\n'.format(top_file) )
                 chrm_top=np.loadtxt(datapath+top_file, delimiter=' ',dtype=int,)
 
             elif top_file==None:
@@ -54,23 +54,25 @@ class AnalyzeTrajectory():
                     for fname in all_files:
                         if 'top.txt' in fname:
                             print('=====================')
-                            print('Loading topology file: ', fname)
+                            print('Loading topology file: {}\n'.format(fname))
                             chrm_top=np.loadtxt(datapath+fname,delimiter=' ',dtype=int,)
 
             #Check for trajectory file and load
             if datafile!=None:
                 if '.cndb' in datafile:
-                    print('Loading .cndb trajectory: {} ...'.format(datafile))
+                    print('Loading .cndb trajectory: {} ...'.format(datafile), end=' ')
                     cndb_traj=cndbT.load(datapath+datafile)
                     all_traj = cndbTools.xyz(frames=[discard_init_steps,cndb_traj.Nframes,1],
                                 beadSelection='all', XYZ=[0,1,2])
                     savename='analyze_'+datafile.replace('.cndb','')
                     del cndb_traj
+                    print('done!\n', flush=True)
 
                 elif '.npy' in datafile:
-                    print('Loading .npy trajectory: {} ...'.format(datafile))
+                    print('Loading .npy trajectory: {} ...'.format(datafile), end=' ')
                     all_traj = np.load(datapath+datafile)[discard_init_steps:,:,:]
                     savename='analyze_'+datafile.replace('.npy','')
+                    print('done!\n', flush=True)
 
 
             elif datafile==None:
@@ -81,9 +83,11 @@ class AnalyzeTrajectory():
                     if count_npy==1:
                         for fname in all_files:
                             if 'positions.npy' in fname:
-                                print('Loading .npy trajectory: {} ...'.format(fname))
+                                print('Loading .npy trajectory: {} ...'.format(fname), end=' ')
                                 all_traj=np.load(datapath+fname)[discard_init_steps:,:,:]
                                 savename='analyze_'+fname.replace('_positions.npy','')
+                        
+                        print('done!\n', flush=True)
 
                     else:
                         print('There are either NO or MORE THAN ONE .cndb/.npy files. \n\
@@ -93,12 +97,14 @@ class AnalyzeTrajectory():
                 elif count_cndb==1:
                     for fname in all_files:
                         if '.cndb' in fname:
-                            print('Loading .cndb trajectory: {} ...'.format(fname))
+                            print('Loading .cndb trajectory: {} ...'.format(fname), end=' ')
                             cndb_traj=cndbT.load(datapath+fname)
                             all_traj = cndbT.xyz(frames=[discard_init_steps,cndb_traj.Nframes,1], 
                                     beadSelection='all', XYZ=[0,1,2])
                             savename='analyze_'+fname.replace('.cndb','')
                             del cndb_traj
+
+                            print('done!\n', flush=True)
 
             self.xyz = all_traj
             self.N = all_traj.shape[1]
@@ -288,5 +294,5 @@ class AnalyzeTrajectory():
         bins=np.arange(0,bondlen_vals.max()+1,dx)
         bondlen_hist, bin_edges=np.histogram(bondlen_vals, bins=bins, density=True)
         bin_mids=0.5*(bin_edges[1:]+bin_edges[:-1])
-        print('done!', flush=True)
+        print('done!\n', flush=True)
         return (bondlen_hist, bin_mids)
