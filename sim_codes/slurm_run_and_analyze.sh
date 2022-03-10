@@ -76,11 +76,7 @@ slurm_file_content="#!/bin/bash -l
 #SBATCH --mem=10G
 #SBATCH --export=ALL
 #SBATCH --gres=gpu:1
-<<<<<<< HEAD
-#SBATCH --time=6:00:00
-=======
-#SBATCH --time=5:00:00
->>>>>>> fc0ec9662ae651ad80a8dfd42969a1deccb56b73
+#SBATCH --time=10:00:00
 
 module load singularity
 
