@@ -133,22 +133,22 @@ class AnalyzeTrajectory():
 
         #compute RG_hist
         rg_vals=np.ravel(np.sqrt(np.sum(flat_eigs, axis=1)))
-        rg_hist,bin_edges=np.histogram(rg_vals, bins=np.logspace(-1,3,200), density=True)
+        rg_hist,bin_edges=np.histogram(rg_vals, bins=np.arange(0,rg_vals.max()+5,0.5), density=True)
         rg_bins=0.5*(bin_edges[:-1]+bin_edges[1:])
         
         #compute asphericity
         asph_vals = np.ravel(flat_eigs[:,2] - 0.5*(flat_eigs[:,0]+flat_eigs[:,1]))
-        asph_hist,bin_edges=np.histogram(asph_vals, bins=np.logspace(-3,6,300), density=True)
+        asph_hist,bin_edges=np.histogram(asph_vals, bins=np.logspace(-4,6,400), density=True)
         asph_bins=0.5*(bin_edges[:-1]+bin_edges[1:])
 
         #compute acylindricity
         acyl_vals=np.ravel(flat_eigs[:,1]-flat_eigs[:,0])
-        acyl_hist,bin_edges=np.histogram(acyl_vals, bins=np.arange(-0.1,acyl_vals.max(),1), density=True)
+        acyl_hist,bin_edges=np.histogram(acyl_vals, bins=np.logspace(-4,6,400), density=True)
         acyl_bins=0.5*(bin_edges[:-1]+bin_edges[1:])
 
         print('done!\n', flush=True,)
 
-        return (np.array(eigs),(rg_hist, rg_bins),(asph_hist, asph_bins),(acyl_hist,acyl_bins))
+        return (eigs,(rg_hist, rg_bins),(asph_hist, asph_bins),(acyl_hist,acyl_bins))
             
     def compute_RG_chains(self):
         
