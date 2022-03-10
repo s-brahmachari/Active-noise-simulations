@@ -247,7 +247,7 @@ def addHarmonicBonds(self,top_file=None,kb=5.0,d=1.0):
         chrm_top=np.loadtxt(top_file, delimiter=' ', dtype=int)
         print("-------\nAdding harmonic bonds according to topology defined in {}\nNumber of polymer segments: {}\n".format(top_file, chrm_top.shape[0]))
         for row in chrm_top:
-            for ii in range(row[0],row[1]-1):
+            for ii in range(row[0],row[1]):
                 _addHarmonicBond_ij(self,ii,ii+1, kb=kb, d=d)
                 if row[2]==1:
                     _addHarmonicBond_ij(self,row[0],row[1], kb=kb,d=d)
