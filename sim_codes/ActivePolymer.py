@@ -25,7 +25,7 @@ def ActivePolymer(
         time_step=0.001, collision_rate=0.1, temperature=120.0,
         name="ActivePolymer", active_corr_time=10.0, activity_amplitude=0.0,
         outpath='output/', init_struct=None, seq_file=None, active_particles=[],
-        ):
+        platform="opencl"):
 
     self=MiChroM(name=name, velocity_reinitialize=False, verbose=False,
                 temperature=temperature,collision_rate=collision_rate)
@@ -44,7 +44,7 @@ def ActivePolymer(
                 noise_corr=self.activeCorrTime * unit.picoseconds,
                 )
 
-    self.setup(platform="opencl",integrator=integrator,)  
+    self.setup(platform=platform,integrator=integrator,)  
     self.saveFolder(outpath)
 
     try:

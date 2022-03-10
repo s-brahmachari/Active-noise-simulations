@@ -56,7 +56,8 @@ except(ValueError) as msg:
     pass
 
 sim=ActivePolymer.ActivePolymer(
-    name=savename, 
+    name=savename,
+    platform='hip', 
     time_step=args.dt, 
     collision_rate=args.gamma, 
     temperature=T, 
