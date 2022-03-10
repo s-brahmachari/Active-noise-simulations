@@ -91,7 +91,7 @@ def ActivePolymer(
     return self
 
 
-def runSims(self, nblocks=100, blocksize=1000, save_format='.npy'):
+def runSims(self, nblocks=100, blocksize=1000, check_every=100, save_format='.npy'):
     
     if self.forcesApplied == False:
         if self.verbose:
@@ -112,7 +112,7 @@ def runSims(self, nblocks=100, blocksize=1000, save_format='.npy'):
             runSimBlock(self, steps=blocksize, increment=True, num=num)
             b = time.time()
             
-            if ii%100==0 or check==True: #check energy component
+            if ii%check_every==0 or check==True: #check energy component
                 self.state = self.context.getState(getPositions=True,
                                                 getEnergy=True)
 
@@ -125,7 +125,7 @@ def runSims(self, nblocks=100, blocksize=1000, save_format='.npy'):
                 print("bl=%d" % (self.step), end=' ')
                 print("pos[1]=[%.1lf %.1lf %.1lf]" % tuple(newcoords[0]), end=' ')
                 stdout.flush()
-                
+
                 if ((np.isnan(newcoords).any()) or (eK > self.eKcritical) or
                     (np.isnan(eK)) or (np.isnan(eP))):
 
