@@ -60,7 +60,7 @@ cp $run_code_home/run_analyze.py $sim_home
 
 python_venv="#!/bin/bash -l
 source ~/venv/containers/openmm/bin/activate
-python3 run_sims.py -name $name -dt $dt -ftop $top  -fseq $seq -rep $replica -Ta $Ta -Na $Na -F $F -temp $T -kb $kb -Esoft $Esoft -nblocks $nblocks -blocksize $blocksize -R0 $R0 -finit $finit -kr $kr
+python3 run_sims.py -name $name -dt $dt -ftop $top  -fseq $seq -rep 1 -Ta $Ta -Na $Na -F $F -temp $T -kb $kb -Esoft $Esoft -nblocks $nblocks -blocksize $blocksize -R0 $R0 -finit $finit -kr $kr
 
 python3 run_analyze.py -s $save_dest/analysis/ -gyr -RDP -MSD -bondlen
 "
