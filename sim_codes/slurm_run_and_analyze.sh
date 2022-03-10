@@ -26,17 +26,17 @@ ii=0
 # mkdir $save_dest/Esoft_$Esoft
 
 for T in 100.0 150.0 200.0 250.0 300.0; do
-mkdir $save_dest/T_$T
+# mkdir $save_dest/T_$T
 
 #0.02 0.2 2.0
-for F in 0.01 0.1 1.0 10.0; do
-# for F in 0.0; do
+# for F in 0.01 0.1 1.0 10.0; do
+for F in 0.0; do
 #rm -r $save_dest/T_$T/F_$F
 mkdir $save_dest/T_$T/F_$F
 
 #0.1 2.0 20.0 200.0
-for Ta in 1.0 10.0 100.0 1000.0; do
-# for Ta in 1.0; do
+# for Ta in 1.0 10.0 100.0 1000.0; do
+for Ta in 1.0; do
 mkdir $save_dest/T_$T/F_$F/Ta_$Ta
 
 for kb in 10.0; do
@@ -69,7 +69,7 @@ chmod u+x "python_venv.sh"
 
 slurm_file_content="#!/bin/bash -l
 
-#SBATCH --job-name=RCact
+#SBATCH --job-name=RCpass
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
 #SBATCH --tasks-per-node=1
