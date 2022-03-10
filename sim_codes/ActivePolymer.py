@@ -111,8 +111,6 @@ def runSims(self, nblocks=100, blocksize=1000, save_format='.npy'):
             a = time.time()
             runSimBlock(self, steps=blocksize, increment=True, num=num)
             b = time.time()
-
-            print("bl=%d" % (self.step), end=' ')
             
             if ii%100==0 or check==True: #check energy component
                 self.state = self.context.getState(getPositions=True,
@@ -123,10 +121,11 @@ def runSims(self, nblocks=100, blocksize=1000, save_format='.npy'):
 
                 eK = (self.state.getKineticEnergy() / self.N / unit.kilojoule_per_mole)
                 eP = self.state.getPotentialEnergy() / self.N / unit.kilojoule_per_mole
-
-
+                
+                print("bl=%d" % (self.step), end=' ')
                 print("pos[1]=[%.1lf %.1lf %.1lf]" % tuple(newcoords[0]), end=' ')
-
+                stdout.flush()
+                
                 if ((np.isnan(newcoords).any()) or (eK > self.eKcritical) or
                     (np.isnan(eK)) or (np.isnan(eP))):
 
@@ -155,7 +154,7 @@ def runSims(self, nblocks=100, blocksize=1000, save_format='.npy'):
                 coords = self.state.getPositions(asNumpy=True)
                 newcoords = coords / self.nm
 
-                print("pos[1]=[%.1lf %.1lf %.1lf]" % tuple(newcoords[0]), end=' ')
+                # print("pos[1]=[%.1lf %.1lf %.1lf]" % tuple(newcoords[0]), end=' ')
 
                 if (np.isnan(newcoords).any()):
                     self.context.setPositions(pos_check_point)
@@ -164,10 +163,10 @@ def runSims(self, nblocks=100, blocksize=1000, save_format='.npy'):
                 else:
                     dif = np.sqrt(np.mean(np.sum((newcoords -
                         self.getPositions()) ** 2, axis=1)))
-                    print("dr=%.2lf" % (dif,), end=' ')
+                    # print("dr=%.2lf" % (dif,), end=' ')
                     self.data = coords
                     # print("t=%2.1lfps" % (self.state.getTime() / unit.second * 1e-12), end=' ')
-                    print("SPS=%.0lf" % (blocksize / (float(b - a))))
+                    # print("SPS=%.0lf" % (blocksize / (float(b - a))))
                     break
     
         positions.append(newcoords)
@@ -205,7 +204,7 @@ def runSimBlock(self, steps=None, increment=True, num=None, check_energy=False):
         for _ in range(steps // num):
             
             self.integrator.step(num)  # integrate!
-            stdout.flush()
+            # stdout.flush()
         if (steps % num) > 0:
             self.integrator.step(steps % num)
 
