@@ -33,14 +33,16 @@ class AnalyzeTrajectory():
     def __init__(self, datapath='./', datafile=None, top_file=None, discard_init_steps=0):
         try:
             all_files=os.listdir(datapath)
+
             #print(all_files)
             #Check for topology file and load
-            if top_file !=None:
+            if top_file is not None:
                 print('=====================')
-                print('Loading topology file: {}\n'.format(top_file) )
-                chrm_top=np.loadtxt(datapath+top_file, delimiter=' ',dtype=int,)
+                print('Loading topology file: {}\n'.format(top_file) , end=' ')
+                chrm_top=np.loadtxt(top_file, delimiter=' ',dtype=int,)
+                print('done!\n')
 
-            elif top_file==None:
+            elif top_file is None:
                 count_top=sum(1 for ff in all_files if 'top.txt' in ff) 
                 if count_top!=1:
                     print('There are either NO or MORE THAN ONE .top files. \n\
@@ -51,14 +53,16 @@ class AnalyzeTrajectory():
                     for fname in all_files:
                         if 'top.txt' in fname:
                             print('=====================')
-                            print('Loading topology file: {}\n'.format(fname))
+                            print('Loading topology file: {}\n'.format(fname), end=' ')
                             chrm_top=np.loadtxt(datapath+fname,delimiter=' ',dtype=int,)
+                            print('done!\n')
 
             #Check for trajectory file and load
-            if datafile!=None:
+            if datafile is not None:
+                
                 if '.cndb' in datafile:
                     print('Loading .cndb trajectory: {} ...'.format(datafile), end=' ', flush=True)
-                    cndb_traj=cndbT.load(datapath+datafile)
+                    cndb_traj=cndbT.load(datafile)
                     all_traj = cndbTools.xyz(frames=[discard_init_steps,cndb_traj.Nframes,1],
                                 beadSelection='all', XYZ=[0,1,2])
                     savename='analyze_'+datafile.replace('.cndb','')
@@ -67,12 +71,12 @@ class AnalyzeTrajectory():
 
                 elif '.npy' in datafile:
                     print('Loading .npy trajectory: {} ...'.format(datafile), end=' ',flush=True)
-                    all_traj = np.load(datapath+datafile)[discard_init_steps:,:,:]
+                    all_traj = np.load(datafile)[discard_init_steps:,:,:]
                     savename='analyze_'+datafile.replace('.npy','')
                     print('done!\n', flush=True)
 
 
-            elif datafile==None:
+            elif datafile is None:
                 #no input given check if there is a unique trajectory file in current directory
                 count_cndb=sum(1 for ff in all_files if '.cndb' in ff)
                 if count_cndb!=1:
@@ -171,6 +175,47 @@ class AnalyzeTrajectory():
     def compute_MSD_chains(self,chains=False, COM=False, pos_autocorr=False):
 
         print('Computing Mean squared displacements...',flush=True, end=' ')
+    
+        #MSD and autocorr averaged over all particles
+        # Pos_autocorr=[]
+        msd=[]
+        for p in range(self.N):
+            s1,s2 = _msd_fft(self.xyz[:,p,:])
+            # Pos_autocorr.append(2*S2/S1)
+            msd.append(s1-2*s2)
+
+        msd=np.array(msd)
+        # Pos_autocorr=np.array(Pos_autocorr)
+
+        #average over all particles
+        msd_av=np.mean(msd,axis=0)
+        # Pos_autocorr_av=np.mean(Pos_autocorr,axis=0)
+
+        if chains == True:
+            #MSD of individual chains
+            #MSD_av[0] contains average over all particles
+            #MSD_av[i>0] contains MSD averaged over chain i
+            for xx in self.top:
+                msd_av=np.vstack((msd_av, np.mean(msd[xx[0]:xx[1]+1], axis=0)))
+                # Pos_autocorr_av=np.vstack((Pos_autocorr_av, np.mean(Pos_autocorr[xx[0]:xx[1]+1], axis=0)))
+        
+        msd_COM=None
+        if COM==True:
+            s1,s2=_msd_fft(np.mean(self.xyz,axis=1))
+            msd_COM=s1-2*s2
+            # PAC_COM=2*S2/S1
+            for xx in self.top:
+                s1,s2=_msd_fft(np.mean(self.xyz[:,xx[0]:xx[1]+1,:],axis=1))
+                msd_COM=np.vstack((msd_COM,s1-2*s2))
+                # PAC_COM=np.vstack((PAC_COM,2*S2/S1))
+        print('done!\n', flush=True)
+
+        return (msd_av,msd_COM)
+
+    #need to check this!!
+    def compute_rel_MSD_chains(self,chains=False,):
+
+        print('Computing relative Mean squared displacements...',flush=True, end=' ')
     
         #MSD and autocorr averaged over all particles
         # Pos_autocorr=[]

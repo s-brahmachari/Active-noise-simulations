@@ -306,7 +306,23 @@ def addRadialConfinement(self, R0=None, vol_frac=None, method='FlatBottomHarmoni
     except (ValueError):
         print("ERROR!!!\nNO confinement potential added!")
         pass
-    
+
+
+def addSelfAvoidance(self,mu=3.0,rc=1.5,E0=4.0):
+    if "SelfAvoidance" not in list(self.forceDict.keys()):
+        sa_energy = ("0.5 * Esoft * (1 + tanh(mu * (rc - r)))")
+        
+        sa_fg = self.mm.CustomNonbondedForce(sa_energy)
+        sa_fg.addGlobalParameter('Esoft', E0)
+        sa_fg.addGlobalParameter('mu', mu)
+        sa_fg.addGlobalParameter("rc", rc)
+        sa_fg.setCutoffDistance(3.0)
+
+        self.forceDict["SelfAvoidance"] = sa_fg
+
+    for _ in range(self.N):
+        self.forceDict["SelfAvoidance"].addParticle(())
+
 
 #=======================================#
 #   Brownian integrator                 #
