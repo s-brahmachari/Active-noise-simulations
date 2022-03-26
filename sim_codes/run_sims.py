@@ -73,6 +73,8 @@ ActivePolymer.addHarmonicBonds(sim, top_file=args.ftop, kb=args.kb, d=1.0)
 
 ActivePolymer.addRadialConfinement(sim, R0=args.R0, method='FlatBottomHarmonic', kr=args.kr)
 
+ActivePolymer.addSelfAvoidance(sim, E0=Esoft)
+
 ActivePolymer.runSims(sim, nblocks=args.nblocks, blocksize=args.blocksize, )
 
 print('\n\m/Finished!\m/\nSaved trajectory at: {}'.format(args.opath))
