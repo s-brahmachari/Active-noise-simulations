@@ -1,6 +1,6 @@
 #!/bin/bash -l
 
-save_dest=~/Active_fluctuations/data/SA_chainN100_confinedR020_PD
+save_dest=~/Active_fluctuations/data/SA_chainN100_confinedR020
 run_code_home=~/Active_fluctuations/Active-noise-simulations/sim_codes
 analyze_code_home=~/Active_fluctuations/analysis_codes
 
