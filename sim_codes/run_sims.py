@@ -14,6 +14,7 @@ parser=arg.ArgumentParser()
 parser.add_argument('-ftop',required=True,dest='ftop',type=str)
 parser.add_argument('-fseq',required=True,dest='fseq',type=str)
 parser.add_argument('-finit',required=True,dest='finit',type=str)
+parser.add_argument('-ftype',required=True,dest='ftype',type=str)
 
 parser.add_argument('-name',required=True,dest='name',type=str)
 parser.add_argument('-Ta',required=True,dest='Ta',type=str)
@@ -74,6 +75,8 @@ ActivePolymer.addHarmonicBonds(sim, top_file=args.ftop, kb=args.kb, d=1.0)
 ActivePolymer.addRadialConfinement(sim, R0=args.R0, method='FlatBottomHarmonic', kr=args.kr)
 
 ActivePolymer.addSelfAvoidance(sim, E0=Esoft)
+
+ActivePolymer.addCustomTypes(sim,mu=3.,rc=1.5,TypesTable=args.ftype)
 
 ActivePolymer.runSims(sim, nblocks=args.nblocks, blocksize=args.blocksize, )
 

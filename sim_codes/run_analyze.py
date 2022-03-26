@@ -42,6 +42,10 @@ if args.MSD:
     msd, msd_com=traj.compute_MSD_chains(chains=False, COM=False)
     np.save(savename+'_MSD.npy', msd)
 
+if args.HiC:
+    hic=traj.traj2HiC(mu=3,rc=1.5)
+    np.save(savename+'_HiC.npy', hic)
+
 
 print('=====================')
 print("\m/Finished!!\m/")
