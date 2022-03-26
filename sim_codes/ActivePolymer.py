@@ -4,6 +4,7 @@ import numpy as np
 import logging
 import re
 from sys import stdout, argv
+import pandas as pd
 import time 
 
 import simtk.unit as unit
@@ -24,7 +25,7 @@ _OPENMM_ENERGY_UNIT = unit.kilojoules_per_mole
 def ActivePolymer(
         time_step=0.001, collision_rate=0.1, temperature=120.0,
         name="ActivePolymer", active_corr_time=10.0, activity_amplitude=0.0,
-        outpath='output/', init_struct=None, seq_file=None, active_particles=[],
+        outpath='output/', init_struct=None, seq_file=None,
         platform="opencl"):
 
     self=MiChroM(name=name, velocity_reinitialize=False, verbose=False,
@@ -74,8 +75,12 @@ def ActivePolymer(
     act_force=self.mm.CustomExternalForce(" - f_act * (x + y + z)")
     act_force.addGlobalParameter('f_act',activity_amplitude)
     self.forceDict["ActiveForce"]=act_force
-    for ii in active_particles:
-        self.forceDict["ActiveForce"].addParticle(ii,[])
+    active_particles=[]
+    for line in open(seq_file):
+        bead_id, bead_type = line.split()
+        if bead_type=='A':
+            self.forceDict["ActiveForce"].addParticle(int(bead_id),[])
+            active_particles.append(bead_id)
 
     print('\n\
         ==================================\n\
@@ -308,7 +313,7 @@ def addRadialConfinement(self, R0=None, vol_frac=None, method='FlatBottomHarmoni
         pass
 
 
-def addSelfAvoidance(self,mu=3.0,rc=1.5,E0=4.0):
+def addSelfAvoidance(self, mu=3.0, rc=0.8, E0=4.0):
     if "SelfAvoidance" not in list(self.forceDict.keys()):
         sa_energy = ("0.5 * Esoft * (1 + tanh(mu * (rc - r)))")
         
@@ -323,6 +328,91 @@ def addSelfAvoidance(self,mu=3.0,rc=1.5,E0=4.0):
     for _ in range(self.N):
         self.forceDict["SelfAvoidance"].addParticle(())
 
+
+def addCustomTypes(self, name="CustomTypes", mu=3, rc = 1.5, TypesTable=None,):
+    R"""
+    Adds the type-to-type potential using custom values for interactions between the chromatin types. The parameters :math:`\mu` (mu) and rc are part of the probability of crosslink function :math:`f(r_{i,j}) = \frac{1}{2}\left( 1 + tanh\left[\mu(r_c - r_{i,j}\right] \right)`, where :math:`r_{i,j}` is the spatial distance between loci (beads) *i* and *j*.
+    
+    The function receives a txt/TSV/CSV file containing the upper triangular matrix of the type-to-type interactions. A file example can be found `here <https://www.ndb.rice.edu>`__.
+    
+    +---+------+-------+-------+
+    |   |   A  |   B   |   C   |
+    +---+------+-------+-------+
+    | A | -0.2 | -0.25 | -0.15 |
+    +---+------+-------+-------+
+    | B |      |  -0.3 | -0.15 |
+    +---+------+-------+-------+
+    | C |      |       | -0.35 |
+    +---+------+-------+-------+
+    
+    Args:
+
+        name (string, required):
+            Name to customType Potential. (Default value = "CustomTypes") 
+        mu (float, required):
+            Parameter in the probability of crosslink function. (Default value = 3.22).
+        rc (float, required):
+            Parameter in the probability of crosslink function, :math:`f(rc) = 0.5`. (Default value = 1.78).
+        TypesTable (file, required):
+            A txt/TSV/CSV file containing the upper triangular matrix of the type-to-type interactions. (Default value: :code:`None`).
+
+
+    """
+    def _types_Letter2number(self, header_types):
+        R"""
+        Internal function for indexing unique chromatin types.
+        """
+        type2number = {}
+        for i,t in enumerate(header_types):
+            type2number[t] = i
+        # print(type2number)
+        # print(self.type_list_letter)
+        for bead in self.type_list_letter:
+            self.type_list.append(type2number[bead])
+        # print(self.type_list)
+
+
+    self.metadata["CrossLink"] = repr({"mu": mu})
+    if not hasattr(self, "type_list"):
+            self.type_list = self.random_ChromSeq(self.N)
+
+    energy = "mapType(t1,t2)*0.5*(1. + tanh(mu*(rc - r)))"
+    
+    crossLP = self.mm.CustomNonbondedForce(energy)
+
+    crossLP.addGlobalParameter('mu', mu)
+    crossLP.addGlobalParameter('rc', rc)
+    # crossLP.addGlobalParameter('lim', 1.0)
+    crossLP.setCutoffDistance(3.0)
+
+    tab = pd.read_csv(TypesTable, sep=None, engine='python')
+
+    header_types = list(tab.columns.values)
+
+    if not set(self.diff_types).issubset(set(header_types)):
+        errorlist = []
+        for i in self.diff_types:
+            if not (i in set(header_types)):
+                errorlist.append(i)
+        raise ValueError("Types: {} are not present in TypesTables: {}\n".format(errorlist, header_types))
+
+    diff_types_size = len(header_types)
+    lambdas = np.triu(tab.values) + np.triu(tab.values, k=1).T
+    lambdas = list(np.ravel(lambdas))
+        
+    fTypes = self.mm.Discrete2DFunction(diff_types_size,diff_types_size,lambdas)
+    crossLP.addTabulatedFunction('mapType', fTypes) 
+        
+    _types_Letter2number(self,header_types)
+    crossLP.addPerParticleParameter("t")
+
+    for i in range(self.N):
+            value = [float(self.type_list[i])]
+            crossLP.addParticle(value)
+            # print(jj)
+            
+    self.forceDict[name] = crossLP
+    
 
 #=======================================#
 #   Brownian integrator                 #

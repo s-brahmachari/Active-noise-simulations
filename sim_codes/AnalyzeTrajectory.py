@@ -2,6 +2,7 @@
 from OpenMiChroM.CndbTools import cndbTools
 import numpy as np
 import os
+from scipy.spatial import distance
 
 cndbT=cndbTools()
 
@@ -358,3 +359,36 @@ class AnalyzeTrajectory():
         bin_mids=0.5*(bin_edges[1:]+bin_edges[:-1])
         print('done!\n', flush=True)
         return (bondlen_hist, bin_mids)
+
+    def traj2HiC(self, mu=3.22, rc = 1.78):
+            R"""
+            Calculates the *in silico* Hi-C maps (contact probability matrix) using a chromatin dyamics trajectory.   
+            
+            The parameters :math:`\mu` (mu) and rc are part of the probability of crosslink function :math:`f(r_{i,j}) = \frac{1}{2}\left( 1 + tanh\left[\mu(r_c - r_{i,j}\right] \right)`, where :math:`r_{i,j}` is the spatial distance between loci (beads) *i* and *j*.
+            
+            Args:
+
+                mu (float, required):
+                    Parameter in the probability of crosslink function. (Default value = 3.22).
+                rc (float, required):
+                    Parameter in the probability of crosslink function, :math:`f(rc) = 0.5`. (Default value = 1.78).
+            
+            Returns:
+                :math:`(N, N)` :class:`numpy.ndarray`:
+                    Returns the *in silico* Hi-C maps (contact probability matrix).
+            """
+            def calc_prob(data, mu, rc):
+                return 0.5 * (1.0 + np.tanh(mu * (rc - distance.cdist(data, data, 'euclidean'))))
+
+            size = len(self.xyz[0])
+            P = np.zeros((size, size))
+            Ntotal = 0
+
+            for i in range(len(self.xyz)):
+                data = self.xyz[i]
+                P += calc_prob(data, mu, rc)
+                Ntotal += 1
+                if i % 500 == 0:
+                    print("Reading frame {:} of {:}".format(i, len(self.xyz)))
+
+            return(np.divide(P , Ntotal))
