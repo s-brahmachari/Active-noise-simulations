@@ -4,7 +4,7 @@ save_dest=~/Active_fluctuations/data/SA_chainN100_confinedR020
 run_code_home=~/Active_fluctuations/Active-noise-simulations/sim_codes
 analyze_code_home=~/Active_fluctuations/analysis_codes
 
-name=Rouse_chain
+name=SAC
 seq=chr_seq.txt
 top=chromosome_top.txt
 finit=sample_snap_1200.npy
@@ -26,17 +26,17 @@ ii=0
 # mkdir $save_dest/Esoft_$Esoft
 
 for T in 200.0; do
-# mkdir $save_dest/T_$T
+mkdir $save_dest/T_$T
 
 #0.02 0.2 2.0
 # for F in 0.01 0.1 1.0 10.0; do
-for F in 0.0; do
+for F in 0.1 1.0 2.0 4.0; do
 #rm -r $save_dest/T_$T/F_$F
 mkdir $save_dest/T_$T/F_$F
 
 #0.1 2.0 20.0 200.0
 # for Ta in 1.0 10.0 100.0 1000.0; do
-for Ta in 1.0; do
+for Ta in 2.0 20.0 200.0 2000.0; do
 mkdir $save_dest/T_$T/F_$F/Ta_$Ta
 
 for kb in 10.0; do
@@ -77,7 +77,7 @@ slurm_file_content="#!/bin/bash -l
 #SBATCH --mem=10G
 #SBATCH --export=ALL
 #SBATCH --gres=gpu:1
-#SBATCH --time=15:00:00
+#SBATCH --time=23:00:00
 
 module load singularity
 
