@@ -11,6 +11,8 @@ parser.add_argument('-top',default=None,dest='top',type=str)
 parser.add_argument('-datapath',default='./',dest='datapath',type=str)
 parser.add_argument('-f',default=None,dest='datafile',type=str)
 parser.add_argument('-s',default='./',dest='savedest',type=str)
+parser.add_argument('-rep',default='1',dest='rep',type=str)
+
 parser.add_argument('-gyr',action='store_true')
 parser.add_argument('-RDP',action='store_true')
 parser.add_argument('-MSD',action='store_true')
@@ -23,7 +25,7 @@ start=time.time()
 
 traj=AnalyzeTrajectory.AnalyzeTrajectory(datapath=args.datapath, datafile=args.datafile, 
                             top_file=args.top, discard_init_steps=20000)
-savename=args.savedest+traj.savename
+savename=args.savedest+traj.savename+'_rep{}'.format(args.rep)
 
 if args.gyr:
     (gyr_eigs, rg, asph, acyl)=traj.compute_GyrationTensor()
