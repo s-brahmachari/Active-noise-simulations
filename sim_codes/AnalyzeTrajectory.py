@@ -34,12 +34,11 @@ class AnalyzeTrajectory():
     def __init__(self, datapath='./', datafile=None, top_file=None, seq_file=None, discard_init_steps=0, beadSelection='all'):
         try:
             all_files=os.listdir(datapath)
-
+            print('=====================\nLoading {} beads:\n'.format(beadSelection))
             #print(all_files)
             #Check for topology file and load
             if top_file is not None:
-                print('=====================')
-                print('Loading topology file: {}\n'.format(top_file) , end=' ')
+                print('Loading topology file: {} ...'.format(top_file) , end=' ')
                 chrm_top=np.loadtxt(top_file, delimiter=' ',dtype=int,)
                 print('done!\n')
 
@@ -53,15 +52,13 @@ class AnalyzeTrajectory():
                 elif count_top==1:
                     for fname in all_files:
                         if 'top.txt' in fname:
-                            print('=====================')
-                            print('Loading topology file: {}\n'.format(fname), end=' ')
+                            print('Loading topology file: {} ...'.format(fname), end=' ')
                             chrm_top=np.loadtxt(datapath+fname,delimiter=' ',dtype=int,)
                             print('done!\n')
 
             if seq_file is not None:
-                print('=====================')
-                print('Loading sequence file: {}\n'.format(seq_file) , end=' ')
-                chr_seq=np.loadtxt(seq_file, delimiter=' ',dtype=int,)
+                print('Loading sequence file: {} ...'.format(seq_file) , end=' ')
+                chr_seq=np.loadtxt(seq_file, delimiter=' ',dtype=str,)
                 print('done!\n')
 
             elif seq_file is None:
@@ -74,9 +71,8 @@ class AnalyzeTrajectory():
                 elif count_seq==1:
                     for fname in all_files:
                         if 'seq' in fname:
-                            print('=====================')
-                            print('Loading sequence file: {}\n'.format(fname), end=' ')
-                            chr_seq=np.loadtxt(datapath+fname,delimiter=' ',dtype=int,)
+                            print('Loading sequence file: {} ...'.format(fname), end=' ')
+                            chr_seq=np.loadtxt(datapath+fname,delimiter=' ',dtype=str,)
                             print('done!\n')
 
             #Check for trajectory file and load
@@ -128,11 +124,12 @@ class AnalyzeTrajectory():
                             del cndb_traj
 
                             print('done!\n', flush=True)
-
-            if beadSelection.lower !='all':
+            
+            if beadSelection !='all':
                 select_traj=[]
                 for ii,line in enumerate(chr_seq):
-                    if beadSelection in line.split()[1]:
+                    #print(line)
+                    if beadSelection==line[1]:
                         select_traj.append(all_traj[:,ii,:])
                 N_select=len(select_traj)
                 select_traj=np.array(select_traj).reshape(all_traj.shape[0],N_select,3)
@@ -144,7 +141,11 @@ class AnalyzeTrajectory():
             self.top = chrm_top
             self.seq = chr_seq
             self.savename = savename
-
+            
+            print("----------------\nTrajectory object created\n----------------")
+            print("Number of particles: {}".format(self.N))
+            print("Total time steps: {}\n----------------\n\n".format(self.T))
+ 
         except (IOError,):
             print("--------\nERROR!!! Could not load trajectory or top file. EXITING!\n-------")
             
@@ -369,7 +370,7 @@ class AnalyzeTrajectory():
             print("FATAL ERROR!! Unvalid 'ref'\n\
                 'ref' can take one of three values: 'origin', 'centroid', and 'custom'")
             return ([0],[0])
-
+        
         rdp_hist,bin_edges=np.histogram(rad_vals, bins=np.arange(0,rad_vals.max()+1,dr), density=False)
         bin_mids=0.5*(bin_edges[:-1] + bin_edges[1:])
         bin_vols = (4/3)*np.pi*(bin_edges[1:]**3 - bin_edges[:-1]**3)

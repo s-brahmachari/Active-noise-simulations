@@ -8,6 +8,7 @@ import time
 #==============================#
 parser=arg.ArgumentParser()
 parser.add_argument('-top',default=None,dest='top',type=str)
+parser.add_argument('-seq',default=None,dest='seq',type=str)
 parser.add_argument('-datapath',default='./',dest='datapath',type=str)
 parser.add_argument('-f',default=None,dest='datafile',type=str)
 parser.add_argument('-s',default='./',dest='savedest',type=str)
@@ -23,8 +24,18 @@ parser.add_argument('-bondlen',action='store_true')
 args=parser.parse_args()
 start=time.time()
 
-traj=AnalyzeTrajectory.AnalyzeTrajectory(datapath=args.datapath, datafile=args.datafile, 
-                            top_file=args.top, discard_init_steps=20000)
+traj=AnalyzeTrajectory.AnalyzeTrajectory(datapath=args.datapath, datafile=args.datafile,
+                           top_file=args.top, discard_init_steps=20000, seq_file=args.seq,
+                           beadSelection='all')
+
+trajA=AnalyzeTrajectory.AnalyzeTrajectory(datapath=args.datapath, datafile=args.datafile, 
+                            top_file=args.top, discard_init_steps=20000, seq_file=args.seq,
+                            beadSelection='A')
+
+trajB=AnalyzeTrajectory.AnalyzeTrajectory(datapath=args.datapath, datafile=args.datafile,
+                           top_file=args.top, discard_init_steps=20000, seq_file=args.seq,
+                           beadSelection='B')
+
 savename=args.savedest+traj.savename+'_rep{}'.format(args.rep)
 
 if args.gyr:
@@ -33,8 +44,14 @@ if args.gyr:
     np.savez(savename+'_shape_descriptors.npz',rg=rg,asph=asph,acyl=acyl)
 
 if args.RDP:
-    rad_dens_hist, bins = traj.compute_RadNumDens()
+    rad_dens_hist, bins = traj.compute_RadNumDens(dr=0.25)
     np.savez(savename+'_RadNumDens.npz', hist=rad_dens_hist, bins=bins)
+
+    rad_dens_hist, bins = trajA.compute_RadNumDens(dr=0.25)
+    np.savez(savename+'_RadNumDens_A.npz', hist=rad_dens_hist, bins=bins)
+
+    rad_dens_hist, bins = trajB.compute_RadNumDens(dr=0.25)
+    np.savez(savename+'_RadNumDens_B.npz', hist=rad_dens_hist, bins=bins)
 
 if args.bondlen:
     bondlen_hist,bins=traj.compute_BondLenDist()
@@ -43,6 +60,12 @@ if args.bondlen:
 if args.MSD:
     msd, msd_com=traj.compute_MSD_chains(chains=False, COM=False)
     np.save(savename+'_MSD.npy', msd)
+
+    msd, msd_com=trajA.compute_MSD_chains(chains=False, COM=False)
+    np.save(savename+'_MSD_A.npy', msd)
+
+    msd, msd_com=trajB.compute_MSD_chains(chains=False, COM=False)
+    np.save(savename+'_MSD_B.npy', msd)
 
 if args.HiC:
     hic=traj.traj2HiC(mu=3,rc=1.5)
