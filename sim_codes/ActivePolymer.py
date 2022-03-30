@@ -241,20 +241,50 @@ def _addHarmonicBond_ij(self, i, j, kb=5.0,d=1.):
     self.forceDict["HarmonicBond"].addBond(int(i), int(j), [])
     self.bondsForException.append((int(i), int(j)))
 
+def _addBendingStiffness(self, bead_ind, ka=2.0,):
+        
+    R"""
+    Adds an angular potential between bonds connecting beads :math:`i − 1, i` and :math:`i, i + 1` according to "Halverson, J.D., Lee, W.B., Grest, G.S., Grosberg, A.Y. and Kremer, K., 2011. Molecular dynamics simulation study of nonconcatenated ring polymers in a melt. I. Statics. The Journal of chemical physics, 134(20), p.204904".
+    
+    Args:
+        ka (float, required):
+            Angle potential coefficient. (Default value = 2.0).
+    """
+    if "BendingStiffness" not in list(self.forceDict.keys()):
+        bending_energy = "k_angle *  (1 - cos(theta - theta_eq))"
 
-def addHarmonicBonds(self,top_file=None,kb=5.0,d=1.0):
+        bending_fg=self.mm.CustomAngleForce(bending_energy)
+    
+        bending_fg.addGlobalParameter("k_angle", ka)
+        bending_fg.addGlobalParameter("theta_eq", 3.1415926 )
+
+        self.forceDict["BendingStiffness"] = bending_fg
+    
+    self.forceDict["BendingStiffness"].addAngle(bead_ind[0], bead_ind[1], bead_ind[2], [])
+    
+
+def addHarmonicBonds(self,top_file=None,kb=5.0,d=1.0, bend_stiffness=False, ka=2.0):
     try:
         if top_file is None: 
             print('No topology file specified!')
             raise TypeError
         
-        chrm_top=np.loadtxt(top_file, delimiter=' ', dtype=int)
+        chrm_top=np.loadtxt(top_file, delimiter=' ', dtype=int, ndmin=2)
         print("-------\nAdding harmonic bonds according to topology defined in {}\nNumber of polymer segments: {}\n".format(top_file, chrm_top.shape[0]))
         for row in chrm_top:
             for ii in range(row[0],row[1]):
                 _addHarmonicBond_ij(self,ii,ii+1, kb=kb, d=d)
                 if row[2]==1:
                     _addHarmonicBond_ij(self,row[0],row[1], kb=kb,d=d)
+
+        if bend_stiffness==True:
+            print("Adding bending stiffness ... ", end=' ')
+            for row in chrm_top:
+                for ii in range(row[0]+1, row[1]):
+                    _addBendingStiffness(self, [ii-1, ii, ii+1], ka=ka)
+                if row[2]==1:
+                    _addBendingStiffness(self, [row[0]+1, row[0], row[1]], ka=ka)
+            print('done.')
 
     except (TypeError,):
         print("ERROR!!! \nTopology file either missing or not in .txt or .csv format.")
@@ -313,20 +343,38 @@ def addRadialConfinement(self, R0=None, vol_frac=None, method='FlatBottomHarmoni
         pass
 
 
-def addSelfAvoidance(self, mu=3.0, rc=0.8, E0=4.0):
+def addSelfAvoidance(self, mu=3.0, rc=0.8, E0=4.0, method='exp', kappa=2.0):
     if "SelfAvoidance" not in list(self.forceDict.keys()):
-        sa_energy = ("0.5 * Esoft * (1 + tanh(mu * (rc - r)))")
+
+        if method=='tanh':
+            sa_energy = ("0.5 * Esoft * (1 + tanh(mu * (rc - r)))")
+            
+            sa_fg = self.mm.CustomNonbondedForce(sa_energy)
+            sa_fg.addGlobalParameter('Esoft', E0)
+            sa_fg.addGlobalParameter('mu', mu)
+            sa_fg.addGlobalParameter("rc", rc)
+            sa_fg.setCutoffDistance(3.0)
         
-        sa_fg = self.mm.CustomNonbondedForce(sa_energy)
-        sa_fg.addGlobalParameter('Esoft', E0)
-        sa_fg.addGlobalParameter('mu', mu)
-        sa_fg.addGlobalParameter("rc", rc)
-        sa_fg.setCutoffDistance(3.0)
+        elif method=='exp':
+            sa_energy = ("Esoft * exp(-kappa*r)")
+            
+            sa_fg = self.mm.CustomNonbondedForce(sa_energy)
+            sa_fg.addGlobalParameter('Esoft', E0)
+            sa_fg.addGlobalParameter('kappa', kappa)
+            sa_fg.setCutoffDistance(3.0)
+        
+        else:
+            print('Invalid method. Method can take two values: `tanh` and `exp`')
+            print('Exiting wihout adding self avoidance!')
+            return False
+
+        print('Adding {} self avoidance between all particles ...'.format(method), end=' ')
 
         self.forceDict["SelfAvoidance"] = sa_fg
 
     for _ in range(self.N):
         self.forceDict["SelfAvoidance"].addParticle(())
+    print('done.')
 
 
 def addCustomTypes(self, name="CustomTypes", mu=3, rc = 1.5, TypesTable=None,):
@@ -412,6 +460,34 @@ def addCustomTypes(self, name="CustomTypes", mu=3, rc = 1.5, TypesTable=None,):
             # print(jj)
             
     self.forceDict[name] = crossLP
+    
+
+def addLengthwiseCompaction(self,mu=3, rc=1.5, d0=4, a_short=1.0, a_long=1.0, l_loop=10.0, chain=None):
+    try:
+        bead_i,bead_f,chain_name=chain
+        
+        LC_energy = ("step(d-d0)*(As*exp(-d/l) + Al/sqrt(d))*0.5*(1. + tanh(mu*(rc - r))); d=abs(idx1-idx2)")
+
+        LC_fg = self.mm.CustomNonbondedForce(LC_energy)
+
+        LC_fg.addGlobalParameter('As', a_short) 
+        LC_fg.addGlobalParameter('Al', a_long)
+        LC_fg.addGlobalParameter('l', l_loop)
+        LC_fg.addGlobalParameter('d0', d0)      
+        LC_fg.addGlobalParameter('mu', mu)  
+        LC_fg.addGlobalParameter('rc', rc) 
+        
+        LC_fg.setCutoffDistance(3.0)
+        LC_fg.addPerParticleParameter("idx")
+
+        for i in range(bead_i,bead_f+1):
+            LC_fg.addParticle([i])
+    
+        self.forceDict["LengthwiseCompaction_"+str(chain_name)] = LC_fg
+
+    except TypeError:
+        print('ERROR!! `chain` not defined\nchain=(bead_i, bead_f, chain_name)')
+        print('Exiting without adding force!')
     
 
 #=======================================#

@@ -1,10 +1,10 @@
 #!/bin/bash -l
 
-save_dest=~/Active_fluctuations/data/SA_chainN100_confinedR020
+save_dest=~/Active_fluctuations/data/Chrm_AB_N500_R010
 run_code_home=~/Active_fluctuations/Active-noise-simulations/sim_codes
 analyze_code_home=~/Active_fluctuations/analysis_codes
 
-name=SAC_AB
+name=Chrm_AB
 seq=chr_seq_AB.txt
 top=chromosome_top.txt
 finit=''#sample_snap_1200.npy
@@ -15,7 +15,7 @@ kr=30
 # kb=10.0
 Esoft=4.0
 R0=10
-nblocks=820000
+nblocks=1020000
 blocksize=100
 dt=0.001
 #rm -r $path0
@@ -73,7 +73,7 @@ chmod u+x "python_venv.sh"
 
 slurm_file_content="#!/bin/bash -l
 
-#SBATCH --job-name=SAC100
+#SBATCH --job-name=Chr500
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
 #SBATCH --tasks-per-node=1
