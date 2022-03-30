@@ -31,7 +31,7 @@ def _msd_fft(r):
 
 class AnalyzeTrajectory():
 
-    def __init__(self, datapath='./', datafile=None, top_file=None, discard_init_steps=0):
+    def __init__(self, datapath='./', datafile=None, top_file=None, seq_file=None, discard_init_steps=0, beadSelection='all'):
         try:
             all_files=os.listdir(datapath)
 
@@ -56,6 +56,27 @@ class AnalyzeTrajectory():
                             print('=====================')
                             print('Loading topology file: {}\n'.format(fname), end=' ')
                             chrm_top=np.loadtxt(datapath+fname,delimiter=' ',dtype=int,)
+                            print('done!\n')
+
+            if seq_file is not None:
+                print('=====================')
+                print('Loading sequence file: {}\n'.format(seq_file) , end=' ')
+                chr_seq=np.loadtxt(seq_file, delimiter=' ',dtype=int,)
+                print('done!\n')
+
+            elif seq_file is None:
+                count_seq=sum(1 for ff in all_files if 'seq' in ff) 
+                if count_seq!=1:
+                    print('There are either NO or MORE THAN ONE .top files. \n\
+                        Specify the topology file using cmd line argument: -top <filename>')
+                    raise IOError
+
+                elif count_seq==1:
+                    for fname in all_files:
+                        if 'seq' in fname:
+                            print('=====================')
+                            print('Loading sequence file: {}\n'.format(fname), end=' ')
+                            chr_seq=np.loadtxt(datapath+fname,delimiter=' ',dtype=int,)
                             print('done!\n')
 
             #Check for trajectory file and load
@@ -108,10 +129,20 @@ class AnalyzeTrajectory():
 
                             print('done!\n', flush=True)
 
+            if beadSelection.lower !='all':
+                select_traj=[]
+                for ii,line in enumerate(chr_seq):
+                    if beadSelection in line.split()[1]:
+                        select_traj.append(all_traj[:,ii,:])
+                N_select=len(select_traj)
+                select_traj=np.array(select_traj).reshape(all_traj.shape[0],N_select,3)
+                all_traj=select_traj
+                
             self.xyz = all_traj
             self.N = all_traj.shape[1]
             self.T = all_traj.shape[0]
             self.top = chrm_top
+            self.seq = chr_seq
             self.savename = savename
 
         except (IOError,):
