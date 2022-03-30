@@ -137,7 +137,7 @@ class AnalyzeTrajectory():
                 N_select=len(select_traj)
                 select_traj=np.array(select_traj).reshape(all_traj.shape[0],N_select,3)
                 all_traj=select_traj
-                
+
             self.xyz = all_traj
             self.N = all_traj.shape[1]
             self.T = all_traj.shape[0]
