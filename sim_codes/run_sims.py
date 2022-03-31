@@ -14,7 +14,7 @@ start=time.time()
 parser=arg.ArgumentParser()
 parser.add_argument('-ftop',required=True,dest='ftop',type=str)
 parser.add_argument('-fseq',required=True,dest='fseq',type=str)
-parser.add_argument('-finit',required=True,dest='finit',type=str)
+parser.add_argument('-finit',default=None,dest='finit',type=str)
 parser.add_argument('-ftype',required=True,dest='ftype',type=str)
 
 parser.add_argument('-name',required=True,dest='name',type=str)

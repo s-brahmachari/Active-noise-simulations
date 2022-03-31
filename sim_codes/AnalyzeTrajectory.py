@@ -39,7 +39,7 @@ class AnalyzeTrajectory():
             #Check for topology file and load
             if top_file is not None:
                 print('Loading topology file: {} ...'.format(top_file) , end=' ')
-                chrm_top=np.loadtxt(top_file, delimiter=' ',dtype=int,)
+                chrm_top=np.loadtxt(top_file, delimiter=' ',dtype=int, ndmin=2)
                 print('done!\n')
 
             elif top_file is None:
@@ -53,7 +53,7 @@ class AnalyzeTrajectory():
                     for fname in all_files:
                         if 'top.txt' in fname:
                             print('Loading topology file: {} ...'.format(fname), end=' ')
-                            chrm_top=np.loadtxt(datapath+fname,delimiter=' ',dtype=int,)
+                            chrm_top=np.loadtxt(datapath+fname,delimiter=' ',dtype=int, ndmin=2)
                             print('done!\n')
 
             if seq_file is not None:
