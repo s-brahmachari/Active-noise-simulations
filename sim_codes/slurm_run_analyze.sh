@@ -31,19 +31,19 @@ mkdir $save_dest/T_$T
 
 #0.02 0.2 2.0
 # for F in 0.01 0.1 1.0 10.0; do
-for F in 0.5 1.0 3.0; do
+for F in 0.0; do
 #rm -r $save_dest/T_$T/F_$F
 mkdir $save_dest/T_$T/F_$F
 
 #0.1 2.0 20.0 200.0
 # for Ta in 1.0 10.0 100.0 1000.0; do
-for Ta in 1.0 100.0 1000.0; do
+for Ta in 1.0; do
 mkdir $save_dest/T_$T/F_$F/Ta_$Ta
 
 # for kb in 10.0; do
 # mkdir $save_dest/T_$T/F_$F/Ta_$Ta/kb_$kb
 
-for replica in 1 2 3; do
+for replica in 4 5; do
  
 sim_home=$save_dest/T_$T/F_$F/Ta_$Ta/replica_$replica
 
