@@ -351,11 +351,12 @@ class AnalyzeTrajectory():
         dist_all=np.zeros(shape=(len(bins)-1))
         ii=0
         for kk,pos in enumerate(self.xyz):
-            dist=distance.cdist(pos,pos, 'euclidean')
-            rij_hist,bin_edges=np.histogram(np.ravel(dist), bins=bins, density=True)
-            dist_all+=rij_hist
-            ii+=1
-            if kk%10000==0: print('frame: ',kk)
+            if kk%100==0:
+                dist=distance.cdist(pos,pos, 'euclidean')
+                rij_hist,bin_edges=np.histogram(np.ravel(dist), bins=bins, density=True)
+                dist_all+=rij_hist
+                ii+=1
+                if kk%20000==0: print('frame: ',kk, flush=True)
         # dist_all=np.ravel(dist_all)    
         # rij_hist,bin_edges=np.histogram(dist_all, bins=bins, density=True)
 
