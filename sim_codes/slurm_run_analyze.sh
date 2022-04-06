@@ -62,7 +62,7 @@ python_venv="#!/bin/bash -l
 source ~/venv/containers/openmm/bin/activate
 # python3 run_sims.py -name $name -dt $dt -ftype $ftype -ftop $top  -fseq $seq -rep $replica -Ta $Ta -Na $Na -F $F -temp $T -kb $kb -Esoft $Esoft -nblocks $nblocks -blocksize $blocksize -R0 $R0 -kr $kr
 
-python3 run_analyze.py -s $save_dest/analysis/ -IPD #-gyr -RDP -MSD -bondlen -HiC -rep $replica
+python3 run_analyze.py -s $save_dest/analysis/ -VCV #-gyr -RDP -MSD -bondlen -HiC -rep $replica
 "
 echo "$python_venv">"python_venv.sh"
 chmod u+x "python_venv.sh"

@@ -2,7 +2,7 @@
 from OpenMiChroM.CndbTools import cndbTools
 import numpy as np
 import os
-from scipy.spatial import distance
+from scipy.spatial import distance, Voronoi, ConvexHull
 
 cndbT=cndbTools()
 
@@ -364,6 +364,32 @@ class AnalyzeTrajectory():
         print('done!\n', flush=True)
         return (dist_all/ii, bin_mids)
 
+    def compute_VoronoiCellVol(self, dv=1.0, Vmax=300.0):
+
+        print('Computing inter-particle distance distribution ...',flush=True,)
+        bins=np.arange(0,Vmax,dv)
+        vol_avg=np.zeros(shape=(len(bins)-1))
+        norm=0
+        for ii, pos in enumerate(self.xyz):
+            if ii%100!=0: continue
+            if ii%20000: print('frame ', ii, flush=True)
+            v = Voronoi(pos)
+            vol = []
+            for reg_num in v.point_region:
+                indices = v.regions[reg_num]
+                if -1 in indices: # some regions can be opened
+                    vol.append(np.nan)
+                else:
+                    vol.append(ConvexHull(v.vertices[indices]).volume)
+        
+            hist,bin_edges=np.histogram(np.array(vol)[~np.isnan(vol)],bins=bins, density=True)
+            norm+=1
+            vol_avg+=hist
+        bin_mids=0.5*(bin_edges[:-1] + bin_edges[1:])
+        print('done!')
+
+        return (vol_avg/norm, bin_mids)
+        
 
     def compute_RadNumDens(self, dr=1.0, ref='origin',center=None):
 

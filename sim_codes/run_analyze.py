@@ -17,6 +17,7 @@ parser.add_argument('-rep',default='1',dest='rep',type=str)
 parser.add_argument('-gyr',action='store_true')
 parser.add_argument('-IPD',action='store_true')
 parser.add_argument('-RDP',action='store_true')
+parser.add_argument('-VCV',action='store_true')
 parser.add_argument('-MSD',action='store_true')
 parser.add_argument('-HiC',action='store_true')
 parser.add_argument('-SXp',action='store_true')
@@ -77,6 +78,10 @@ if args.HiC:
 if args.IPD:
     rij_hist, bins=traj.compute_InterParticleDist()
     np.savez(savename+'_IPD.npz', hist=rij_hist, bins=bins)
+
+if args.VCV:
+    vcv_hist,vcv_bins=traj.compute_VoronoiCellVol(Vmax=300., dv=1.0)
+    np.savez(savename+'_VCV.npz', hist=vcv_hist, bins=vcv_bins)
 
 
 print('=====================')
