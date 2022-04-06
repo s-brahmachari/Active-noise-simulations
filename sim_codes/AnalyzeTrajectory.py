@@ -310,7 +310,7 @@ class AnalyzeTrajectory():
 
         return SXp
 
-    def compute_InterParticleDist(self, dr=1):
+    def compute_InterParticleDist(self, dr=1, Rmax=50):
 
         R"""
         Calculates the radial number density of monomers; which when integrated over 
@@ -347,18 +347,21 @@ class AnalyzeTrajectory():
         """
         print('Computing inter-particle distance distribution ...',flush=True,)
 
-        dist_all=[]
+        bins=np.arange(0,Rmax,dr)
+        dist_all=np.zeros(shape=(len(bins)-1))
+        ii=0
         for kk,pos in enumerate(self.xyz):
-            if kk%200==0: continue
             dist=distance.cdist(pos,pos, 'euclidean')
-            dist_all.append(np.ravel(dist))
-            if kk%1000==0: print('frame ',kk)
-        dist_all=np.ravel(dist_all)    
-        rij_hist,bin_edges=np.histogram(dist_all, bins=np.arange(0,dist_all.max()+2,dr), density=True)
+            rij_hist,bin_edges=np.histogram(np.ravel(dist), bins=bins, density=True)
+            dist_all+=rij_hist
+            ii+=1
+            if kk%10000==0: print('frame: ',kk)
+        # dist_all=np.ravel(dist_all)    
+        # rij_hist,bin_edges=np.histogram(dist_all, bins=bins, density=True)
 
         bin_mids=0.5*(bin_edges[:-1] + bin_edges[1:])
         print('done!\n', flush=True)
-        return (rij_hist, bin_mids)
+        return (dist_all/ii, bin_mids)
 
 
     def compute_RadNumDens(self, dr=1.0, ref='origin',center=None):
