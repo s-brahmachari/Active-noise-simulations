@@ -1,20 +1,20 @@
 #!/bin/bash -l
 
-save_dest=~/Active_fluctuations/data/SA_chainN100_confinedR020
+save_dest=~/Active_fluctuations/data/SAC_G1200_N100_R020
 run_code_home=~/Active_fluctuations/Active-noise-simulations/sim_codes
 analyze_code_home=~/Active_fluctuations/analysis_codes
 
-name=Chrm_AB
-seq=chr_seq_AB.txt
+name=SAC
+seq=allA_seq.txt
 top=chromosome_top.txt
 finit=' ' #sample_snap_1200.npy
 ftype=type_table.csv
 
-Na=500
-kr=30
+G=1200
+kr=30.0
 kb=10.0
 Esoft=4.0
-R0=10
+R0=10.0
 nblocks=1020000
 blocksize=100
 dt=0.001
@@ -35,32 +35,31 @@ mkdir $save_dest/T_$T/F_$F
 for Ta in 1.0; do
 mkdir $save_dest/T_$T/F_$F/Ta_$Ta
 
-for kb in 10.0; do
-mkdir $save_dest/T_$T/F_$F/Ta_$Ta/kb_$kb
+# for kb in 10.0; do
+# mkdir $save_dest/T_$T/F_$F/Ta_$Ta/kb_$kb
 
-# for replica in 4 5; do
+for replica in 1; do
  
-sim_home=$save_dest/T_$T/F_$F/Ta_$Ta/kb_$kb
-# sim_home=$save_dest/T_$T/F_$F/Ta_$Ta/replica_$replica
+# sim_home=$save_dest/T_$T/F_$F/Ta_$Ta/kb_$kb
+sim_home=$save_dest/T_$T/F_$F/Ta_$Ta/replica_$replica
 
 mkdir $sim_home
 
 cd $sim_home
-#cp $run_code_home/run_sims.py $sim_home
-#cp $run_code_home/input_files/$seq $sim_home
-#cp $run_code_home/input_files/$top $sim_home
-#cp $run_code_home/input_files/$finit $sim_home
-#cp $run_code_home/ActivePolymer.py $sim_home 
+cp $run_code_home/run_sims.py $sim_home
+cp $run_code_home/input_files/$seq $sim_home
+cp $run_code_home/input_files/$top $sim_home
+cp $run_code_home/input_files/$finit $sim_home
+cp $run_code_home/ActivePolymer.py $sim_home 
 
 cp $run_code_home/AnalyzeTrajectory.py $sim_home
 cp $run_code_home/run_analyze.py $sim_home
 #cp $run_code_home/input_files/$ftype $sim_home
 
-# cp $code_home/$finit ./
 
 python_venv="#!/bin/bash -l
 source ~/venv/containers/openmm/bin/activate
-# python3 run_sims.py -name $name -dt $dt -ftype $ftype -ftop $top  -fseq $seq -rep $replica -Ta $Ta -Na $Na -F $F -temp $T -kb $kb -Esoft $Esoft -nblocks $nblocks -blocksize $blocksize -R0 $R0 -kr $kr
+python3 run_sims.py -name $name -dt $dt -ftype $ftype -ftop $top  -fseq $seq -rep $replica -Ta $Ta -G $G -F $F -temp $T -kb $kb -Esoft $Esoft -nblocks $nblocks -blocksize $blocksize -R0 $R0 -kr $kr
 
 python3 run_analyze.py -s $save_dest/analysis/ -VCV #-gyr -RDP -MSD -bondlen -HiC -rep $replica
 "
