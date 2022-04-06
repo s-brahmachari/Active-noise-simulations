@@ -349,9 +349,10 @@ class AnalyzeTrajectory():
 
         dist_all=[]
         for kk,pos in enumerate(self.xyz):
+            if kk%200==0: continue
             dist=distance.cdist(pos,pos, 'euclidean')
             dist_all.append(np.ravel(dist))
-            if kk%10000==0: print('frame ',kk)
+            if kk%1000==0: print('frame ',kk)
         dist_all=np.ravel(dist_all)    
         rij_hist,bin_edges=np.histogram(dist_all, bins=np.arange(0,dist_all.max()+2,dr), density=True)
 
