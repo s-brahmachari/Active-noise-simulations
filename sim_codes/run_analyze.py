@@ -15,6 +15,7 @@ parser.add_argument('-s',default='./',dest='savedest',type=str)
 parser.add_argument('-rep',default='1',dest='rep',type=str)
 
 parser.add_argument('-gyr',action='store_true')
+parser.add_argument('-IPD',action='store_true')
 parser.add_argument('-RDP',action='store_true')
 parser.add_argument('-MSD',action='store_true')
 parser.add_argument('-HiC',action='store_true')
@@ -28,13 +29,15 @@ traj=AnalyzeTrajectory.AnalyzeTrajectory(datapath=args.datapath, datafile=args.d
                            top_file=args.top, discard_init_steps=20000, seq_file=args.seq,
                            beadSelection='all')
 
-trajA=AnalyzeTrajectory.AnalyzeTrajectory(datapath=args.datapath, datafile=args.datafile, 
-                            top_file=args.top, discard_init_steps=20000, seq_file=args.seq,
-                            beadSelection='A')
+trajA=''
+trajB=''
+# trajA=AnalyzeTrajectory.AnalyzeTrajectory(datapath=args.datapath, datafile=args.datafile, 
+#                             top_file=args.top, discard_init_steps=20000, seq_file=args.seq,
+#                             beadSelection='A')
 
-trajB=AnalyzeTrajectory.AnalyzeTrajectory(datapath=args.datapath, datafile=args.datafile,
-                           top_file=args.top, discard_init_steps=20000, seq_file=args.seq,
-                           beadSelection='B')
+# trajB=AnalyzeTrajectory.AnalyzeTrajectory(datapath=args.datapath, datafile=args.datafile,
+#                            top_file=args.top, discard_init_steps=20000, seq_file=args.seq,
+#                            beadSelection='B')
 
 savename=args.savedest+traj.savename+'_rep{}'.format(args.rep)
 
@@ -70,6 +73,10 @@ if args.MSD:
 if args.HiC:
     hic=traj.traj2HiC(mu=3,rc=1.5)
     np.save(savename+'_HiC.npy', hic)
+
+if args.IPD:
+    rij_hist, bins=traj.compute_InterParticleDist()
+    np.savez(savename+'_IPD.npz', hist=rij_hist, bins=bins)
 
 
 print('=====================')
