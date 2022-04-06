@@ -1,6 +1,6 @@
 #!/bin/bash -l
 
-save_dest=~/Active_fluctuations/data/Chrm_AB_N500_R010
+save_dest=~/Active_fluctuations/data/SA_chainN100_confinedR020
 run_code_home=~/Active_fluctuations/Active-noise-simulations/sim_codes
 analyze_code_home=~/Active_fluctuations/analysis_codes
 
@@ -29,23 +29,19 @@ ii=0
 for T in 200.0; do
 mkdir $save_dest/T_$T
 
-#0.02 0.2 2.0
-# for F in 0.01 0.1 1.0 10.0; do
 for F in 0.0; do
-#rm -r $save_dest/T_$T/F_$F
 mkdir $save_dest/T_$T/F_$F
 
-#0.1 2.0 20.0 200.0
-# for Ta in 1.0 10.0 100.0 1000.0; do
 for Ta in 1.0; do
 mkdir $save_dest/T_$T/F_$F/Ta_$Ta
 
-# for kb in 10.0; do
-# mkdir $save_dest/T_$T/F_$F/Ta_$Ta/kb_$kb
+for kb in 10.0; do
+mkdir $save_dest/T_$T/F_$F/Ta_$Ta/kb_$kb
 
-for replica in 4 5; do
+# for replica in 4 5; do
  
-sim_home=$save_dest/T_$T/F_$F/Ta_$Ta/replica_$replica
+sim_home=$save_dest/T_$T/F_$F/Ta_$Ta/kb_$kb
+# sim_home=$save_dest/T_$T/F_$F/Ta_$Ta/replica_$replica
 
 mkdir $sim_home
 
@@ -66,14 +62,14 @@ python_venv="#!/bin/bash -l
 source ~/venv/containers/openmm/bin/activate
 # python3 run_sims.py -name $name -dt $dt -ftype $ftype -ftop $top  -fseq $seq -rep $replica -Ta $Ta -Na $Na -F $F -temp $T -kb $kb -Esoft $Esoft -nblocks $nblocks -blocksize $blocksize -R0 $R0 -kr $kr
 
-python3 run_analyze.py -s $save_dest/analysis/ -gyr -RDP -MSD -bondlen -HiC -rep $replica
+python3 run_analyze.py -s $save_dest/analysis/ -IPD #-gyr -RDP -MSD -bondlen -HiC -rep $replica
 "
 echo "$python_venv">"python_venv.sh"
 chmod u+x "python_venv.sh"
 
 slurm_file_content="#!/bin/bash -l
 
-#SBATCH --job-name=Chr_an
+#SBATCH --job-name=SAC_ipd
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
 #SBATCH --tasks-per-node=1

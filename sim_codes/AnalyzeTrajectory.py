@@ -309,7 +309,57 @@ class AnalyzeTrajectory():
         print('done!\n',flush=True)
 
         return SXp
+
+    def compute_InterParticleDist(self, dr=1):
+
+        R"""
+        Calculates the radial number density of monomers; which when integrated over 
+        the volume (with the appropriate kernel: 4*pi*r^2) gives the total number of monomers.
         
+        Args:
+            xyz (:math:`(frames, beadSelection, XYZ)` :class:`numpy.ndarray` (dim: TxNx3), required):
+                Array of the 3D position of the selected beads for different frames extracted by using the :code: `xyz()` function.  
+
+            dr (float, required):
+                mesh size of radius for calculating the radial distribution. 
+                can be arbitrarily small, but leads to empty bins for small values.
+                bins are computed from the maximum values of radius and dr.
+            
+            ref (string):
+                defines reference for centering the disribution. It can take three values:
+                
+                'origin': radial distance is calculated from the center
+
+                'centroid' (default value): radial distributioin is computed from the centroid of the cloud of points at each time step
+
+                'custom': user defined center of reference. 'center' is required to be specified when 'custom' reference is chosen
+
+            center (list of float, len 3):
+                defines the reference point in custom reference. required when ref='custom'
+                       
+        Returns:
+            num_density:class:`numpy.ndarray`:
+                the number density
+            
+            bins:class:`numpy.ndarray`:
+                bins corresponding to the number density
+
+        """
+        print('Computing inter-particle distance distribution ...',flush=True,)
+
+        dist_all=[]
+        for kk,pos in enumerate(self.xyz):
+            dist=distance.cdist(pos,pos, 'euclidean')
+            dist_all.append(np.ravel(dist))
+            if kk%10000==0: print('frame ',kk)
+        dist_all=np.ravel(dist_all)    
+        rij_hist,bin_edges=np.histogram(dist_all, bins=np.arange(0,dist_all.max()+2,dr), density=True)
+
+        bin_mids=0.5*(bin_edges[:-1] + bin_edges[1:])
+        print('done!\n', flush=True)
+        return (rij_hist, bin_mids)
+
+
     def compute_RadNumDens(self, dr=1.0, ref='origin',center=None):
 
         R"""
