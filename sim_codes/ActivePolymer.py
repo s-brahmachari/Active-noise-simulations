@@ -462,7 +462,7 @@ def addCustomTypes(self, name="CustomTypes", mu=3, rc = 1.5, TypesTable=None,):
     self.forceDict[name] = crossLP
     
 
-def addLengthwiseCompaction(self,mu=3, rc=1.5, d0=4, a_short=1.0, a_long=1.0, l_loop=10.0, chain=None):
+def addLengthwiseCompaction(self,mu=3, rc=1.5, d0=4, a_short=-0.5, a_long=-0.5, l_loop=10.0, chain=None):
     try:
         bead_i,bead_f,chain_name=chain
         
