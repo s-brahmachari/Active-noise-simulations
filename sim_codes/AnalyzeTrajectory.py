@@ -366,12 +366,12 @@ class AnalyzeTrajectory():
 
     def compute_VoronoiCellVol(self, dv=1.0, Vmax=300.0):
 
-        print('Computing inter-particle distance distribution ...',flush=True,)
+        print('Computing Voronoi cell volumes ...',flush=True,)
         bins=np.arange(0,Vmax,dv)
         vol_avg=np.zeros(shape=(len(bins)-1))
         norm=0
         for ii, pos in enumerate(self.xyz):
-            if ii%100!=0: continue
+            if ii%500!=0: continue
             if ii%20000: print('frame ', ii, flush=True)
             v = Voronoi(pos)
             vol = []
@@ -386,7 +386,7 @@ class AnalyzeTrajectory():
             norm+=1
             vol_avg+=hist
         bin_mids=0.5*(bin_edges[:-1] + bin_edges[1:])
-        print('done!')
+        print('done!\n')
 
         return (vol_avg/norm, bin_mids)
         
@@ -492,7 +492,7 @@ class AnalyzeTrajectory():
             """
             def calc_prob(data, mu, rc):
                 return 0.5 * (1.0 + np.tanh(mu * (rc - distance.cdist(data, data, 'euclidean'))))
-
+            print('Compuing HiC ...', flush=True)
             size = len(self.xyz[0])
             P = np.zeros((size, size))
             Ntotal = 0

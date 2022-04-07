@@ -79,7 +79,7 @@ def ActivePolymer(
     for line in open(seq_file):
         bead_id, bead_type = line.split()
         if bead_type=='A':
-            self.forceDict["ActiveForce"].addParticle(int(bead_id),[])
+            self.forceDict["ActiveForce"].addParticle(int(bead_id)-1,[])
             active_particles.append(bead_id)
 
     print('\n\

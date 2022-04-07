@@ -66,7 +66,7 @@ sim=ActivePolymer.ActivePolymer(
     active_corr_time=t_corr, 
     activity_amplitude=F,
     outpath=args.opath, 
-    init_struct=None, 
+    init_struct=args.finit, 
     seq_file=args.fseq,
     )
 
