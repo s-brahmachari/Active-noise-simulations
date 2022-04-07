@@ -70,7 +70,7 @@ sim=ActivePolymer.ActivePolymer(
     seq_file=args.fseq,
     )
 
-ActivePolymer.addHarmonicBonds(sim, top_file=args.ftop, kb=args.kb, d=1.0, bend_stiffness=False, ka=2.0)
+ActivePolymer.addHarmonicBonds(sim, top_file=args.ftop, kb=args.kb, d=1.0, bend_stiffness=True, ka=2.0)
 
 ActivePolymer.addRadialConfinement(sim, R0=args.R0, method='FlatBottomHarmonic', kr=args.kr)
 
