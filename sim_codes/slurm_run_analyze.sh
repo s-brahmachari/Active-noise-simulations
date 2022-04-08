@@ -1,10 +1,10 @@
 #!/bin/bash -l
 
-save_dest=~/Active_fluctuations/data/SAC_G1200_N100_R020_stiff
+save_dest=~/Active_fluctuations/data/SAC_G1200_N100_R020_adhesive
 run_code_home=~/Active_fluctuations/Active-noise-simulations/sim_codes
 analyze_code_home=~/Active_fluctuations/analysis_codes
 
-name=StiffSAC_exp
+name=AdhSAC_exp
 seq=allA_seq.txt
 top=chromosome_top.txt
 finit=init_structure_G1200_N100_R020.npy #sample_snap_1200.npy
@@ -56,7 +56,7 @@ cp $run_code_home/ActivePolymer.py $sim_home
 
 cp $run_code_home/AnalyzeTrajectory.py $sim_home
 cp $run_code_home/run_analyze.py $sim_home
-#cp $run_code_home/input_files/$ftype $sim_home
+cp $run_code_home/input_files/$ftype $sim_home
 
 
 python_venv="#!/bin/bash -l
@@ -70,7 +70,7 @@ chmod u+x "python_venv.sh"
 
 slurm_file_content="#!/bin/bash -l
 
-#SBATCH --job-name=stiffSAC
+#SBATCH --job-name=adhSAC
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
 #SBATCH --tasks-per-node=1
