@@ -29,12 +29,12 @@ ii=0
 for T in 200.0; do
 mkdir $save_dest/T_$T
 
-#for F in 0.0; do
-for F in 0.1 0.3 0.7 1.0 2.0 5.0; do
+for F in 0.0; do
+#for F in 0.1 0.3 0.7 1.0 2.0 5.0; do
 mkdir $save_dest/T_$T/F_$F
 
-#for Ta in 1.0; do
-for Ta in 0.01 0.1 1.0 10.0 50.0 100.0 1000.0; do
+for Ta in 1.0; do
+#for Ta in 0.01 0.1 1.0 10.0 50.0 100.0 1000.0; do
 mkdir $save_dest/T_$T/F_$F/Ta_$Ta
 
 # for kb in 10.0; do
