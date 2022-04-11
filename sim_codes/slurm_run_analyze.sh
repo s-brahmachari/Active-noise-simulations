@@ -1,10 +1,10 @@
 #!/bin/bash -l
 
-save_dest=~/Active_fluctuations/data/SAC_G1200_N100_R020_adhesive
+save_dest=~/Active_fluctuations/data/SAC_exp_G1200_N100_R020_Es0
 run_code_home=~/Active_fluctuations/Active-noise-simulations/sim_codes
 analyze_code_home=~/Active_fluctuations/analysis_codes
 
-name=AdhSAC_exp
+name=SAC_exp
 seq=allA_seq.txt
 top=chromosome_top.txt
 finit=init_structure_G1200_N100_R020.npy #sample_snap_1200.npy
@@ -13,7 +13,7 @@ ftype=type_table.csv
 G=1200
 kr=30.0
 kb=10.0
-Esoft=4.0
+Esoft=0.0
 R0=20.0
 nblocks=1000000
 blocksize=100
@@ -70,7 +70,7 @@ chmod u+x "python_venv.sh"
 
 slurm_file_content="#!/bin/bash -l
 
-#SBATCH --job-name=adhSAC
+#SBATCH --job-name=SAC0
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
 #SBATCH --tasks-per-node=1
