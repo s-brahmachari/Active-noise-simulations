@@ -74,7 +74,7 @@ if args.MSD:
         np.save(savename+'_MSD_B.npy', msd)
 
 if args.HiC:
-    hic=traj.traj2HiC(mu=3,rc=1.5)
+    hic=traj.compute_HiC(mu=3,rc=1.5)
     np.save(savename+'_HiC.npy', hic)
 
 if args.IPD:

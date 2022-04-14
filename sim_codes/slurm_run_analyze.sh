@@ -19,8 +19,9 @@ nblocks=1000000
 blocksize=100
 dt=0.001
 #rm -r $path0
-mkdir $save_dest
-mkdir $save_dest/analysis
+
+#mkdir $save_dest
+#mkdir $save_dest/analysis
 
 ii=0
 # for Esoft in 0; do
@@ -72,7 +73,7 @@ chmod u+x "python_venv.sh"
 
 slurm_file_content="#!/bin/bash -l
 
-#SBATCH --job-name=SAChic
+#SBATCH --job-name=SAC_hic
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
 #SBATCH --tasks-per-node=1
