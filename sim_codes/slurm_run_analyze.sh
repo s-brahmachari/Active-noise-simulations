@@ -31,11 +31,11 @@ for T in 200.0; do
 #mkdir $save_dest/T_$T
 
 #for F in 0.0 0.001 0.01; do
-for F in 0.2; do
+for F in 0.7 1.0 2.0; do
 #for F in 0.0; do
 mkdir $save_dest/T_$T/F_$F
 
-for Ta in 0.04 0.4 2.0 6.0 20.0 400.0; do
+for Ta in 0.3 2.0 6.0; do
 #for Ta in 0.01 0.1 1.0 10.0 50.0 100.0 1000.0; do
 #for Ta in 1.0; do 
 mkdir $save_dest/T_$T/F_$F/Ta_$Ta
