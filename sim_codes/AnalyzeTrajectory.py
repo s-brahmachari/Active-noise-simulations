@@ -479,12 +479,12 @@ class AnalyzeTrajectory():
         if avg_all:
             def calc_prob(data, mu, rc):
                 return 0.5 * (1.0 + np.tanh(mu * (rc - distance.cdist(data, data, 'euclidean'))))
-            size=self.top[0][1] - self.top[0][0]
+            size=self.top[0][1] - self.top[0][0]+1
             Prob = np.zeros((size, size))
             for chrm in self.top:
                 for i in range(self.T):
                     Prob += calc_prob(self.xyz[i,chrm[0]:chrm[1]+1,:], mu, rc)
-                    if i % 500 == 0:
+                    if i % 50000 == 0:
                         print("Reading frame {:} of {:}".format(i, len(self.xyz)))
 
             Prob=Prob/(self.T*self.top.shape[0])
