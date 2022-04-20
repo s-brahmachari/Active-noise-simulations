@@ -21,6 +21,8 @@ parser.add_argument('-VCV',action='store_true')
 parser.add_argument('-MSD',action='store_true')
 parser.add_argument('-HiC',action='store_true')
 parser.add_argument('-SXp',action='store_true')
+parser.add_argument('-relMSD',action='store_true')
+parser.add_argument('-comRDP',action='store_true')
 parser.add_argument('-bondlen',action='store_true')
 
 args=parser.parse_args()
@@ -47,6 +49,10 @@ if args.gyr:
     np.save(savename+'_GyrEigs.npy', gyr_eigs)
     np.savez(savename+'_shape_descriptors.npz',rg=rg,asph=asph,acyl=acyl)
 
+if args.comRDP:
+    rad_dens_hist, bins = traj.compute_comRadNumDens(dr=0.25)
+    np.savez(savename+'_comRadNumDens.npz', hist=rad_dens_hist, bins=bins)
+
 if args.RDP:
     rad_dens_hist, bins = traj.compute_RadNumDens(dr=0.25)
     np.savez(savename+'_RadNumDens.npz', hist=rad_dens_hist, bins=bins)
@@ -65,13 +71,17 @@ if args.bondlen:
 if args.MSD:
     msd, msd_com=traj.compute_MSD_chains(chains=False, COM=False)
     np.save(savename+'_MSD.npy', msd)
-    
+
     if trajA is not None:
         msd, msd_com=trajA.compute_MSD_chains(chains=False, COM=False)
         np.save(savename+'_MSD_A.npy', msd)
     if trajB is not None:
         msd, msd_com=trajB.compute_MSD_chains(chains=False, COM=False)
         np.save(savename+'_MSD_B.npy', msd)
+
+if args.relMSD:
+    msd25,msd50,msd75=traj.compute_rel_MSD_chains()
+    np.savez(savename+'_RelMSD.npz', msd25=msd25,msd50=msd50,msd75=msd75)
 
 if args.HiC:
     hic=traj.compute_HiC(mu=3,rc=1.5)

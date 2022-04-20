@@ -80,7 +80,7 @@ class AnalyzeTrajectory():
                 
                 if '.cndb' in datafile:
                     print('Loading .cndb trajectory: {} ...'.format(datafile), end=' ', flush=True)
-                    cndb_traj=cndbT.load(datafile)
+                    cndb_traj=cndbT.load(datapath+datafile)
                     all_traj = cndbTools.xyz(frames=[discard_init_steps,cndb_traj.Nframes,1],
                                 beadSelection='all', XYZ=[0,1,2])
                     savename='analyze_'+datafile.replace('.cndb','')
@@ -89,7 +89,7 @@ class AnalyzeTrajectory():
 
                 elif '.npy' in datafile:
                     print('Loading .npy trajectory: {} ...'.format(datafile), end=' ',flush=True)
-                    all_traj = np.load(datafile)[discard_init_steps:,:,:]
+                    all_traj = np.load(datapath+datafile)[discard_init_steps:,:,:]
                     savename='analyze_'+datafile.replace('.npy','')
                     print('done!\n', flush=True)
 
@@ -246,45 +246,33 @@ class AnalyzeTrajectory():
         return (msd_av,msd_COM)
 
     #need to check this!!
-    def compute_rel_MSD_chains(self,chains=False,):
+    def compute_rel_MSD_chains(self,):
 
         print('Computing relative Mean squared displacements...',flush=True, end=' ')
-    
-        #MSD and autocorr averaged over all particles
-        # Pos_autocorr=[]
-        msd=[]
-        for p in range(self.N):
-            s1,s2 = _msd_fft(self.xyz[:,p,:])
-            # Pos_autocorr.append(2*S2/S1)
-            msd.append(s1-2*s2)
+        msd_25,msd_50, msd_75=[],[]
 
-        msd=np.array(msd)
-        # Pos_autocorr=np.array(Pos_autocorr)
+        for chrm in self.top:
+            mi,mf=chrm[0], chrm[1]
+            mono_mid,mono_1,mono_2=mi+int((mf-mi)/2), mi+int((mf-mi)/4), mi+int((mf-mi)*3/4)
+            mono_3,mono_4=mi+int((mf-mi)*0.1),mi+int((mf-mi)*0.85)
 
-        #average over all particles
-        msd_av=np.mean(msd,axis=0)
-        # Pos_autocorr_av=np.mean(Pos_autocorr,axis=0)
+            s1,s2=_msd_fft(self.xyz[:,mono_mid,:]-self.xyz[:,mono_1])
+            msd_25.append(s1-2*s2)
+            
+            s1,s2=_msd_fft(self.xyz[:,mono_1,:]-self.xyz[:,mono_2])
+            msd_50.append(s1-2*s2)
 
-        if chains == True:
-            #MSD of individual chains
-            #MSD_av[0] contains average over all particles
-            #MSD_av[i>0] contains MSD averaged over chain i
-            for xx in self.top:
-                msd_av=np.vstack((msd_av, np.mean(msd[xx[0]:xx[1]+1], axis=0)))
-                # Pos_autocorr_av=np.vstack((Pos_autocorr_av, np.mean(Pos_autocorr[xx[0]:xx[1]+1], axis=0)))
+            s1,s2=_msd_fft(self.xyz[:,mono_3,:]-self.xyz[:,mono_4])
+            msd_75.append(s1-2*s2)
+            
+
+        msd_25=np.mean(msd_25,axis=0)
+        msd_50=np.mean(msd_50,axis=0)
+        msd_75=np.mean(msd_75,axis=0)
+
+        print('done!\n')
         
-        msd_COM=None
-        if COM==True:
-            s1,s2=_msd_fft(np.mean(self.xyz,axis=1))
-            msd_COM=s1-2*s2
-            # PAC_COM=2*S2/S1
-            for xx in self.top:
-                s1,s2=_msd_fft(np.mean(self.xyz[:,xx[0]:xx[1]+1,:],axis=1))
-                msd_COM=np.vstack((msd_COM,s1-2*s2))
-                # PAC_COM=np.vstack((PAC_COM,2*S2/S1))
-        print('done!\n', flush=True)
-
-        return (msd_av,msd_COM)
+        return (msd_25,msd_50,msd_75)
         
     def compute_ModeAutocorr(self, modes=[1,2,4,7,10], chains=False):
 
@@ -458,6 +446,56 @@ class AnalyzeTrajectory():
         num_density = rdp_hist/(self.xyz.shape[0]*bin_vols)
         print('done!\n', flush=True)
         return (num_density, bin_mids)
+
+    def compute_comRadNumDens(self, dr=1.0, ref='origin',center=None):
+
+        R"""
+        Calculates the radial number density of center of mass of chromosome chains; which when integrated over 
+        the volume (with the appropriate kernel: 4*pi*r^2) gives the total number of chromosomes.
+        
+        Args:
+            xyz (:math:`(frames, beadSelection, XYZ)` :class:`numpy.ndarray` (dim: TxNx3), required):
+                Array of the 3D position of the selected beads for different frames extracted by using the :code: `xyz()` function.  
+
+            dr (float, required):
+                mesh size of radius for calculating the radial distribution. 
+                can be arbitrarily small, but leads to empty bins for small values.
+                bins are computed from the maximum values of radius and dr.
+            
+            ref (string):
+                defines reference for centering the disribution. It can take three values:
+                
+                'origin': radial distance is calculated from the center
+
+                'centroid' (default value): radial distributioin is computed from the centroid of the cloud of points at each time step
+
+                'custom': user defined center of reference. 'center' is required to be specified when 'custom' reference is chosen
+
+            center (list of float, len 3):
+                defines the reference point in custom reference. required when ref='custom'
+                       
+        Returns:
+            num_density:class:`numpy.ndarray`:
+                the number density
+            
+            bins:class:`numpy.ndarray`:
+                bins corresponding to the number density
+
+        """
+        print('Computing radial number density with reference={} ...'.format(ref),flush=True, end=' ')
+        rad_vals=[]
+        for chrm in self.top:
+            rcms=np.mean(self.xyz[:,chrm[0]:chrm[1]+1,:],axis=1, keepdims=True)
+            rad_vals.append(np.linalg.norm(rcms,axis=2))
+        rad_vals=np.ravel(rad_vals)
+        
+        rdp_hist,bin_edges=np.histogram(rad_vals, bins=np.arange(0,rad_vals.max()+1,dr), density=False)
+        bin_mids=0.5*(bin_edges[:-1] + bin_edges[1:])
+        bin_vols = (4/3)*np.pi*(bin_edges[1:]**3 - bin_edges[:-1]**3)
+        num_density = rdp_hist/(self.xyz.shape[0]*bin_vols)
+        print('done!\n', flush=True)
+        return (num_density, bin_mids)
+
 
     def compute_BondLenDist(self,dx=0.1):
         print('Computing bond length distribution ... ', flush=True, end=' ')
