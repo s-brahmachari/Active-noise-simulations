@@ -25,9 +25,10 @@ _OPENMM_ENERGY_UNIT = unit.kilojoules_per_mole
 def ActivePolymer(
         time_step=0.001, collision_rate=0.1, temperature=120.0,
         name="ActivePolymer", active_corr_time=10.0, activity_amplitude=0.0,
-        outpath='output/', init_struct=None, seq_file=None,
+        outpath='output/', init_struct='random', seq_file=None,
         platform="opencl"):
 
+    #Initialize Michrom class
     self=MiChroM(name=name, velocity_reinitialize=False, verbose=False,
                 temperature=temperature,collision_rate=collision_rate)
     
@@ -38,6 +39,7 @@ def ActivePolymer(
     self.activeAmplitude=activity_amplitude
     self.activeCorrTime=active_corr_time
 
+    #set up integrator
     integrator=CustomBrownianIntegrator(
                 timestep=self.timestep * unit.picoseconds, 
                 collision_rate=self.collisionRate / unit.picoseconds,
@@ -48,39 +50,56 @@ def ActivePolymer(
     self.setup(platform=platform,integrator=integrator,)  
     self.saveFolder(outpath)
 
-    try:
-        seq=np.loadtxt(seq_file, dtype=str)
-        if init_struct is None:
-            chrm=self.create_springSpiral(ChromSeq=seq_file)
-            init_struct='default spiral spring'
-        else:
-            if '.npy' in init_struct:
-                chrm=np.load(init_struct)
-            else:
-                chrm=np.loadtxt(init_struct) 
-        if seq.shape[0]!=chrm.shape[0]:
-            print('ERROR!!!\n\
-                    Mismatched number of monomers in sequence file and initial structure\n')
-            raise TypeError
-
-        self.loadStructure(chrm,center=True)
-        self._translate_type(seq_file)
-    
-    except (TypeError,):
-        print('Please check:\n\
-            1. sequence file is in .txt or .csv format\n\
-            2. the number of monomers in the sequence file and initial structure file (if provided) are the same')
-        pass
-
+    #define active force group
     act_force=self.mm.CustomExternalForce(" - f_act * (x + y + z)")
     act_force.addGlobalParameter('f_act',activity_amplitude)
     self.forceDict["ActiveForce"]=act_force
-    active_particles=[]
-    for line in open(seq_file):
-        bead_id, bead_type = line.split()
-        if bead_type=='A':
-            self.forceDict["ActiveForce"].addParticle(int(bead_id)-1,[])
-            active_particles.append(bead_id)
+
+    #Add particles to active force group
+    try:
+        #If seq_file is an integer, add all active particles
+        N_act=int(seq_file)
+        for bead_id in range(N_act):
+            self.forceDict["ActiveForce"].addParticle(int(bead_id),[])
+
+        #randomize monomers in a sphere using roughly 1% volume fraction
+        if init_struct=='random':
+            rad=N_act**0.33/(0.01)
+            chrm=np.random.uniform(low=-rad,high=rad, size=(N_act,3))
+
+        elif '.npy' in init_struct:
+            chrm=np.load(init_struct)
+        elif '.txt' in init_struct:
+            chrm=np.loadtxt(init_struct)
+        else:
+            print('Please provide .npy/.txt file for initial structure')
+        
+
+    except ValueError:
+        #load sequence file
+        seq=np.loadtxt(seq_file, dtype=str)
+        for line in open(seq_file):
+            bead_id, bead_type = line.split()
+            
+            #assign activity to 'A' monomers
+            if bead_type=='A':
+                self.forceDict["ActiveForce"].addParticle(int(bead_id)-1,[])
+        self._translate_type(seq_file)
+
+        #randomize monomers in a sphere using roughly 1% volume fraction
+        if init_struct=='random':
+            rad=seq.shape[0]**0.33/(0.01)
+            chrm=np.random.uniform(low=-rad,high=rad, size=(N_act,3))
+
+        elif '.npy' in init_struct:
+            chrm=np.load(init_struct)
+        elif '.txt' in init_struct:
+            chrm=np.loadtxt(init_struct)
+        else:
+            print('Please provide .npy/.txt file for initial structure')
+        
+    #load structure into michrom
+    self.loadStructure(chrm,center=True)
 
     print('\n\
         ==================================\n\
@@ -91,7 +110,7 @@ def ActivePolymer(
         Active correlation time: {}\n\
         Total number of active particles: {}\n\
         ==================================\n'.format(
-        seq_file, init_struct,activity_amplitude, active_corr_time, len(active_particles)))
+        seq_file, init_struct,activity_amplitude, active_corr_time, self.forceDict["ActiveForce"].getNumParticles()))
     
     return self
 
