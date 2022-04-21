@@ -95,7 +95,10 @@ if args.VCV:
     vcv_hist,vcv_bins=traj.compute_VoronoiCellVol(Vmax=300., dv=1.0)
     np.savez(savename+'_VCV.npz', hist=vcv_hist, bins=vcv_bins)
 
-
+if args.SXp:
+    sxp,modes=traj.compute_ModeAutocorr(modes=[1,2,3,4,7,10,15,20])
+    np.savez(savename+'_SXp.npz',sxp=sxp,modes=modes)
+        
 print('=====================')
 print("\m/Finished!!\m/")
 print('Saved data at {}'.format(args.savedest))

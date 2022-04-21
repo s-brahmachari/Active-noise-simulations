@@ -249,7 +249,7 @@ class AnalyzeTrajectory():
     def compute_rel_MSD_chains(self,):
 
         print('Computing relative Mean squared displacements...',flush=True, end=' ')
-        msd_25,msd_50, msd_75=[],[]
+        msd_25,msd_50, msd_75=[],[],[]
 
         for chrm in self.top:
             mi,mf=chrm[0], chrm[1]
@@ -296,7 +296,7 @@ class AnalyzeTrajectory():
         
         print('done!\n',flush=True)
 
-        return SXp
+        return (SXp,modes)
 
     def compute_InterParticleDist(self, dr=1, Rmax=50):
 
