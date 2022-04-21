@@ -15,7 +15,7 @@ parser=arg.ArgumentParser()
 parser.add_argument('-ftop',required=True,dest='ftop',type=str)
 parser.add_argument('-fseq',required=True,dest='fseq',type=str)
 parser.add_argument('-finit',default=None,dest='finit',type=str)
-parser.add_argument('-ftype',required=True,dest='ftype',type=str)
+parser.add_argument('-ftype',default=None,dest='ftype',type=str)
 
 parser.add_argument('-name',required=True,dest='name',type=str)
 parser.add_argument('-Ta',required=True,dest='Ta',type=str)
@@ -34,14 +34,18 @@ parser.add_argument('-nblocks',default=1000,dest='nblocks',type=int)
 parser.add_argument('-blocksize',default=500,dest='blocksize',type=int)
 parser.add_argument('-outpath',default='./',dest='opath',type=str)
 parser.add_argument('-kr',default='20',dest='kr',type=float)
+parser.add_argument('-savename',default=None,dest='savename',)
 
 args=parser.parse_args()
 
-#Define name
-savename=args.name+"_T{0:}_F{1:}_Ta{2:}_Esoft{3:}_R0{4:}_G{5:}_blocksize{6:}_kb{7:}_dt{8:}_kr{9:}".format(
+if args.savename is None:
+    #Define name
+    savename=args.name+"_T{0:}_F{1:}_Ta{2:}_Esoft{3:}_R0{4:}_G{5:}_blocksize{6:}_kb{7:}_dt{8:}_kr{9:}".format(
                                 args.temp, args.F, args.Ta,
                                 args.Esoft, args.R0, args.G,
                                 args.blocksize,args.kb, args.dt, args.kr)
+else:
+    savename=args.savename
 
 #=======================#
 #Simulation Parameters  #

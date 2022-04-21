@@ -179,9 +179,12 @@ def runSims(self, nblocks=100, blocksize=1000, check_every=100, save_format='.np
         if ii%int(nblocks*0.1)==0:
             # self.printForces()
             np.save(self.folder+'traj_'+self.name+'_positions.npy',np.array(positions))
+            np.save(self.folder+self.name+'_lastFrame.npy',np.array(positions)[-1,:,:])
             # print('saved')
 
     np.save(self.folder+'traj_'+self.name+'_positions.npy',np.array(positions))
+    np.save(self.folder+self.name+'_lastFrame.npy',np.array(positions)[-1,:,:])
+
 
 def runSimBlock(self, steps=None, increment=True, num=None, check_energy=False):
         R"""
