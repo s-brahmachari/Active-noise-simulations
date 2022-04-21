@@ -76,7 +76,7 @@ sim=ActivePolymer.ActivePolymer(
 
 ActivePolymer.addHarmonicBonds(sim, top_file=args.ftop, kb=args.kb, d=1.0, bend_stiffness=False, ka=2.0)
 
-#ActivePolymer.addRadialConfinement(sim, R0=args.R0, method='FlatBottomHarmonic', kr=args.kr)
+ActivePolymer.addRadialConfinement(sim, R0=args.R0, method='FlatBottomHarmonic', kr=args.kr)
 
 ActivePolymer.addSelfAvoidance(sim, E0=Esoft, method='exp')
 
