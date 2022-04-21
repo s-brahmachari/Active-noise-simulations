@@ -29,7 +29,7 @@ args=parser.parse_args()
 start=time.time()
 
 traj=AnalyzeTrajectory.AnalyzeTrajectory(datapath=args.datapath, datafile=args.datafile,
-                           top_file=args.top, discard_init_steps=1000, seq_file=args.seq,
+                           top_file=args.top, discard_init_steps=0, seq_file=args.seq,
                            beadSelection='all')
 
 trajA=None

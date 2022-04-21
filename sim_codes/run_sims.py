@@ -62,7 +62,7 @@ except(ValueError) as msg:
 
 #annealing without activity
 if args.anneal:
-    annealing_temps=np.flip(np.arange(int(T),int(T)+200,50))
+    annealing_temps=np.flip(np.arange(int(T),int(T)+300,100))
     print('Annealing ... ')
     for jj,T_anneal in enumerate(annealing_temps):
         print('Temperature ', T_anneal)
@@ -87,7 +87,7 @@ if args.anneal:
 
         ActivePolymer.addSelfAvoidance(sim, E0=Esoft, method='exp')
 
-        ActivePolymer.runSims(sim, nblocks=1000, blocksize=1000, )
+        ActivePolymer.runSims(sim, nblocks=800, blocksize=1000, )
 
     print('Annealing finished!')
 

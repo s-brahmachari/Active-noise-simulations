@@ -75,7 +75,7 @@ def ActivePolymer(
             print('Please provide .npy/.txt file for initial structure')
         
 
-    except ValueError:
+    except (ValueError,):
         #load sequence file
         seq=np.loadtxt(seq_file, dtype=str)
         for line in open(seq_file):
@@ -89,7 +89,7 @@ def ActivePolymer(
         #randomize monomers in a sphere using roughly 1% volume fraction
         if init_struct=='random':
             rad=seq.shape[0]**0.33/(0.01)
-            chrm=np.random.uniform(low=-rad,high=rad, size=(N_act,3))
+            chrm=np.random.uniform(low=-rad,high=rad, size=(seq.shape[0],3))
 
         elif '.npy' in init_struct:
             chrm=np.load(init_struct)
