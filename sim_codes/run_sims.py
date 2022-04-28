@@ -112,10 +112,10 @@ ActivePolymer.addRadialConfinement(sim, R0=args.R0, method='FlatBottomHarmonic',
 
 ActivePolymer.addSelfAvoidance(sim, E0=Esoft, method='exp')
 
-#ActivePolymer.addCustomTypes(sim,mu=3.,rc=1.5,TypesTable=args.ftype)
+ActivePolymer.addCustomTypes(sim,mu=3.,rc=1.5,TypesTable=args.ftype)
 
-# for jj,val in enumerate(np.loadtxt(args.ftop, dtype=int, ndmin=2)):
-#     ActivePolymer.addLengthwiseCompaction(sim, a_short=-0.1, a_long=-0.3, chain=(val[0],val[1],jj))
+for jj,val in enumerate(np.loadtxt(args.ftop, dtype=int, ndmin=2)):
+    ActivePolymer.addLengthwiseCompaction(sim, a_short=-0.1, a_long=-0.3, chain=(val[0],val[1],jj))
 
 ActivePolymer.runSims(sim, nblocks=args.nblocks, blocksize=args.blocksize, )
 
