@@ -102,7 +102,7 @@ class AnalyzeTrajectory():
                     if count_npy==1:
                         for fname in all_files:
                             if 'positions.npy' in fname:
-                                print('Loading .npy trajectory: {} ...'.format(fname), end=' ',flush=True)
+                                print('Loading .npy trajectory: {} ...idaho'.format(fname), end=' ',flush=True)
                                 all_traj=np.load(datapath+fname)[discard_init_steps:,:,:]
                                 savename='analyze_'+fname.replace('_positions.npy','')
                         
