@@ -522,7 +522,7 @@ class AnalyzeTrajectory():
             for chrm in self.top:
                 for i in range(self.T):
                     Prob += calc_prob(self.xyz[i,chrm[0]:chrm[1]+1,:], mu, rc)
-                    if i % 50000 == 0:
+                    if i % 5000 == 0:
                         print("Reading frame {:} of {:}".format(i, len(self.xyz)))
 
             Prob=Prob/(self.T*self.top.shape[0])

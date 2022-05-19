@@ -31,7 +31,7 @@ mkdir $save_dest/T_$T
 
 #for F in 0.1 0.2 0.5 1.0 1.5 2.0 3.0 4.0; do
 #for F in 0.1 0.5 1.0 2.0 4.0; do
-for F in 0.0; do
+for F in 1.0; do
 #for F in 0.3 1.5; do
 mkdir $save_dest/T_$T/F_$F
 
@@ -42,8 +42,8 @@ mkdir $save_dest/T_$T/F_$F
 #continue
 #fi
 #for Ta in 0.1 1.0 10.0 30.0 100.0; do
-#for Ta in 0.3 10.0; do 
-for Ta in 1.0; do
+for Ta in 0.3 10.0; do 
+#for Ta in 1.0; do
 sim_home=$save_dest/T_$T/F_$F/Ta_$Ta
 mkdir $sim_home
 
@@ -67,7 +67,7 @@ source ~/venv/containers/openmm/bin/activate
 
 python3 run_sims.py -anneal -name $name -dt $dt -ftype $ftype -ftop $top  -fseq $seq -rep $replica -Ta $Ta -G $G -F $F -temp $T -kb $kb -Esoft $Esoft -nblocks $nblocks -blocksize $blocksize -R0 $R0
 
-python3 run_analyze.py -s $save_dest/analysis/ -rep $replica -RDP -comRDP
+python3 run_analyze.py -s $save_dest/analysis/ -rep $replica -HiC
 
 "
 echo "$python_venv">"python_venv.sh"
@@ -75,7 +75,7 @@ chmod u+x "python_venv.sh"
 
 slurm_file_content="#!/bin/bash -l
 
-#SBATCH --job-name=DLDeq
+#SBATCH --job-name=DLDact
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=8
 #SBATCH --tasks-per-node=1
