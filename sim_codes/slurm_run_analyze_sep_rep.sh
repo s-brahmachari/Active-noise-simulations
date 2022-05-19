@@ -1,23 +1,23 @@
 #!/bin/bash -l
 
-save_dest=~/Active_fluctuations/prod_runs/RC_G1200_N100_R020_d0
+save_dest=~/Active_fluctuations/prod_runs/DLD_chr10
 run_code_home=~/Active_fluctuations/Active-noise-simulations/sim_codes
 analyze_code_home=~/Active_fluctuations/analysis_codes
 
-name=RC
-seq=allA_seq.txt
+name=DLD10
+seq=DLD_seq_chr10.txt
 #seq=seq_chr10.txt
 #top=chr10_top.txt
-top=chromosome_top.txt
+top=DLD_chr10_top.txt
 #top=chr_G1200_N40_top.txt
 ftype=type_table.csv
 
-G=1200
+G=2676
 kr=30.0
 kb=5.0
-Esoft=0.0
-R0=20.0
-nblocks=100000
+Esoft=5.0
+R0=30.0
+nblocks=50000
 blocksize=100
 dt=0.001
 
@@ -26,7 +26,7 @@ mkdir $save_dest/analysis
 
 ii=0
 
-for T in 200.0; do
+for T in 120.0; do
 mkdir $save_dest/T_$T
 
 #for F in 0.1 0.2 0.5 1.0 1.5 2.0 3.0 4.0; do
@@ -47,7 +47,7 @@ for Ta in 1.0; do
 sim_home=$save_dest/T_$T/F_$F/Ta_$Ta
 mkdir $sim_home
 
-for replica in {1..8} ; do
+for replica in {1..18} ; do
 rep_home=$save_dest/T_$T/F_$F/Ta_$Ta/replica_$replica
 
 mkdir $rep_home
@@ -75,14 +75,14 @@ chmod u+x "python_venv.sh"
 
 slurm_file_content="#!/bin/bash -l
 
-#SBATCH --job-name=RCeq
+#SBATCH --job-name=DLDeq
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=8
 #SBATCH --tasks-per-node=1
 #SBATCH --mem=20G
 #SBATCH --export=ALL
 #SBATCH --gres=gpu:1
-#SBATCH --time=2-3:55:00
+#SBATCH --time=23:55:00
 
 module load singularity
 
