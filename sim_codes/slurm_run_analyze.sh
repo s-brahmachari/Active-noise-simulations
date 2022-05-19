@@ -1,24 +1,25 @@
 #!/bin/bash -l
 
-save_dest=~/Active_fluctuations/prod_runs/RC_G1200_N40_R020_d0
+save_dest=~/Active_fluctuations/prod_runs/DLD_chr10
 run_code_home=~/Active_fluctuations/Active-noise-simulations/sim_codes
 analyze_code_home=~/Active_fluctuations/analysis_codes
 
-name=RC
+name=DLD10
 #seq=seq_chr10.txt
-seq=allA_seq.txt
+seq=DLD_seq_chr10.txt
 #top=chr10_top.txt
 #top=chromosome_top.txt
-top=chr_G1200_N40_top.txt
+# top=chr_G1200_N40_top.txt
+top=DLD_chr10_top.txt
 
 ftype=type_table.csv
 
-G=1200
+G=2676
 kr=30.0
 kb=5.0
-Esoft=0.0
-R0=20.0
-nblocks=200000
+Esoft=5.0
+R0=30.0
+nblocks=50000
 blocksize=100
 dt=0.001
 
@@ -27,7 +28,7 @@ mkdir $save_dest/analysis
 
 ii=0
 
-for T in 200.0; do
+for T in 120.0; do
 mkdir $save_dest/T_$T
 
 #for F in 0.05 0.1 0.2 0.5 1.0 1.5 2.0 3.0; do
@@ -44,26 +45,26 @@ sim_home=$save_dest/T_$T/F_$F/Ta_$Ta
 mkdir $sim_home
 cd $sim_home
 
-#cp $run_code_home/run_sims.py $sim_home
-#cp $run_code_home/input_files/$seq $sim_home
-#cp $run_code_home/input_files/$top $sim_home
-#cp $run_code_home/ActivePolymer.py $sim_home
+cp $run_code_home/run_sims.py $sim_home
+cp $run_code_home/input_files/$seq $sim_home
+cp $run_code_home/input_files/$top $sim_home
+cp $run_code_home/ActivePolymer.py $sim_home
 
-#cp $run_code_home/AnalyzeTrajectory.py $sim_home
-#cp $run_code_home/run_analyze.py $sim_home
-#cp $run_code_home/input_files/$ftype $sim_home
+cp $run_code_home/AnalyzeTrajectory.py $sim_home
+cp $run_code_home/run_analyze.py $sim_home
+cp $run_code_home/input_files/$ftype $sim_home
 
 
 python_venv="#!/bin/bash -l
 
-for replica in {1..5} ; do
+for replica in {1..15} ; do
 rep_home=$save_dest/T_$T/F_$F/Ta_$Ta/replica_"'$replica'"
 
 mkdir "'$rep_home'"
 
 source ~/venv/containers/openmm/bin/activate
 
-#python3 run_sims.py -anneal -name $name -dt $dt -ftype $ftype -ftop $top  -fseq $seq -rep "'$replica'" -Ta $Ta -G $G -F $F -temp $T -kb $kb -Esoft $Esoft -nblocks $nblocks -blocksize $blocksize -R0 $R0 -outpath "'$rep_home'"/
+python3 run_sims.py -anneal -name $name -dt $dt -ftype $ftype -ftop $top  -fseq $seq -rep "'$replica'" -Ta $Ta -G $G -F $F -temp $T -kb $kb -Esoft $Esoft -nblocks $nblocks -blocksize $blocksize -R0 $R0 -outpath "'$rep_home'"/
 
 python3 run_analyze.py -s $save_dest/analysis/ -top $top -seq $seq -datapath replica_"'$replica'"/ -rep "'$replica'" -gyr -RDP -comRDP 
 
@@ -74,7 +75,7 @@ chmod u+x "python_venv.sh"
 
 slurm_file_content="#!/bin/bash -l
 
-#SBATCH --job-name=RC40
+#SBATCH --job-name=DLD_eq
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=8
 #SBATCH --tasks-per-node=1
