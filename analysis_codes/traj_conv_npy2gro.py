@@ -15,7 +15,7 @@ with open(sys.argv[1].replace('.npy','.gro'),'w') as f:
         f.write('Chromatin\t t={}\n{}\n'.format(t, sys.argv[2]))
         for bead,sq in zip(range(val.shape[0]),seq):
             if 'A' in sq[1]: res=str(bead+1)+'ASP'
-            else: res=str(bead+1)+'ASP'
+            else: res=str(bead+1)+'ARG'
             f.write('{0:>8s}{1:>6s}{2: 5d}{3: 8.3f}{4: 8.3f}{5: 8.3f}{6: 8.3f}{7: 8.3f}{8: 8.3f}\n'.format(res,'CA',bead+1, val[bead][0],val[bead][1],val[bead][2],0,0,0))
         f.write('{0: 8.4f}{1: 8.4f}{2: 8.4f}\n'.format(500.0, 500., 500.))
 

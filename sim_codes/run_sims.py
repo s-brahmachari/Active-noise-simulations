@@ -89,7 +89,7 @@ if args.anneal:
 
         ActivePolymer.addCustomTypes(sim,mu=3.,rc=1.5,TypesTable=args.ftype)
 
-        ActivePolymer.runSims(sim, nblocks=800, blocksize=1000, )
+        ActivePolymer.runSims(sim, nblocks=50, blocksize=1000, )
 
     print('Annealing finished!')
 

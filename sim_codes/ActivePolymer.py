@@ -64,9 +64,10 @@ def ActivePolymer(
 
         #randomize monomers in a sphere using roughly 1% volume fraction
         if init_struct=='random':
-            rad=N_act**0.33/(0.01)
+            rad=(N_act/(8*0.1))**0.33
             chrm=np.random.uniform(low=-rad,high=rad, size=(N_act,3))
-
+        elif type(init_struct)==np.ndarray:
+            chrm=init_struct
         elif '.npy' in init_struct:
             chrm=np.load(init_struct)
         elif '.txt' in init_struct:
@@ -236,7 +237,6 @@ def runSimBlock(self, steps=None, increment=True, num=None, check_energy=False):
             self.integrator.step(steps % num)
 
         
-    
 def _addHarmonicBond_ij(self, i, j, kb=5.0,d=1.):
 
     R"""
@@ -253,14 +253,14 @@ def _addHarmonicBond_ij(self, i, j, kb=5.0,d=1.):
     """    
 
     if "HarmonicBond" not in list(self.forceDict.keys()):
-        harmonic_energy = ("0.5 * k_har * (r - r0_har) * (r - r0_har)")
+        harmonic_energy = ("0.5 * k_har * (r - r0_har)^2")
         harmonic_bond_fg = self.mm.CustomBondForce(harmonic_energy)
-        harmonic_bond_fg.addGlobalParameter("k_har", kb)
-        harmonic_bond_fg.addGlobalParameter("r0_har", d)
+        harmonic_bond_fg.addPerBondParameter("k_har")
+        harmonic_bond_fg.addPerBondParameter("r0_har")
 
         self.forceDict["HarmonicBond"] = harmonic_bond_fg
 
-    self.forceDict["HarmonicBond"].addBond(int(i), int(j), [])
+    self.forceDict["HarmonicBond"].addBond(int(i), int(j), [kb,d])
     self.bondsForException.append((int(i), int(j)))
 
 def _addBendingStiffness(self, bead_ind, ka=2.0,):
@@ -296,16 +296,16 @@ def addHarmonicBonds(self,top_file=None,kb=5.0,d=1.0, bend_stiffness=False, ka=2
         for row in chrm_top:
             for ii in range(row[0],row[1]):
                 _addHarmonicBond_ij(self,ii,ii+1, kb=kb, d=d)
-                if row[2]==1:
-                    _addHarmonicBond_ij(self,row[0],row[1], kb=kb,d=d)
+            if row[2]==1:
+                _addHarmonicBond_ij(self,row[0],row[1], kb=kb,d=d)
 
         if bend_stiffness==True:
             print("Adding bending stiffness ... ", end=' ')
             for row in chrm_top:
                 for ii in range(row[0]+1, row[1]):
                     _addBendingStiffness(self, [ii-1, ii, ii+1], ka=ka)
-                if row[2]==1:
-                    _addBendingStiffness(self, [row[0]+1, row[0], row[1]], ka=ka)
+            if row[2]==1:
+                _addBendingStiffness(self, [row[0]+1, row[0], row[1]], ka=ka)
             print('done.')
 
     except (TypeError,):
@@ -363,6 +363,20 @@ def addRadialConfinement(self, R0=None, vol_frac=None, method='FlatBottomHarmoni
     except (ValueError):
         print("ERROR!!!\nNO confinement potential added!")
         pass
+
+
+def addCylindricalConfinement(self, r_conf=5.0, z_conf=10.0, kr=30.0):
+    cyl_conf_energy="step(r_xy-r_res) * 0.5 * kr * (r_xy-r_res)^2 + step(z^2-zconf^2) * 0.5 * kr * (z-zconf)^2; r_xy=sqrt(x*x+y*y)"
+    
+    cyl_conf_fg = self.mm.CustomExternalForce(cyl_conf_energy)
+    cyl_conf_fg.addGlobalParameter('r_res', r_conf)
+    cyl_conf_fg.addGlobalParameter('kr', kr)
+    cyl_conf_fg.addGlobalParameter('zconf', z_conf)
+    
+    self.forceDict["CylindricalConfinement"]=cyl_conf_fg
+
+    for i in range(self.N):
+        self.forceDict["CylindricalConfinement"].addParticle(i, [])
 
 
 def addSelfAvoidance(self, mu=3.0, rc=0.8, E0=4.0, method='exp', kappa=2.0):
