@@ -1,23 +1,23 @@
 #!/bin/bash -l
 
-save_dest=~/Active_fluctuations/prod_runs/DLD_chr10
+save_dest=~/Active_fluctuations/prod_runs/DLD_chr10_N500_0.24_0.35_0.25
 run_code_home=~/Active_fluctuations/Active-noise-simulations/sim_codes
 analyze_code_home=~/Active_fluctuations/analysis_codes
 
 name=DLD10
-seq=DLD_seq_chr10.txt
+seq=DLD_seq_chr10_500.txt
 #seq=seq_chr10.txt
 #top=chr10_top.txt
-top=DLD_chr10_top.txt
+top=DLD_chr10_500_top.txt
 #top=chr_G1200_N40_top.txt
 ftype=type_table.csv
 
-G=2676
+G=500
 kr=30.0
 kb=5.0
 Esoft=5.0
-R0=30.0
-nblocks=50000
+R0=10.0
+nblocks=80000
 blocksize=100
 dt=0.001
 
@@ -31,7 +31,7 @@ mkdir $save_dest/T_$T
 
 #for F in 0.1 0.2 0.5 1.0 1.5 2.0 3.0 4.0; do
 #for F in 0.1 0.5 1.0 2.0 4.0; do
-for F in 1.0; do
+for F in 0.0; do
 #for F in 0.3 1.5; do
 mkdir $save_dest/T_$T/F_$F
 
@@ -42,12 +42,12 @@ mkdir $save_dest/T_$T/F_$F
 #continue
 #fi
 #for Ta in 0.1 1.0 10.0 30.0 100.0; do
-for Ta in 0.3 10.0; do 
+for Ta in 1.0; do 
 #for Ta in 1.0; do
 sim_home=$save_dest/T_$T/F_$F/Ta_$Ta
 mkdir $sim_home
 
-for replica in {1..18} ; do
+for replica in {1..15} ; do
 rep_home=$save_dest/T_$T/F_$F/Ta_$Ta/replica_$replica
 
 mkdir $rep_home
@@ -75,14 +75,14 @@ chmod u+x "python_venv.sh"
 
 slurm_file_content="#!/bin/bash -l
 
-#SBATCH --job-name=DLDact
+#SBATCH --job-name=DLDeq2
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=8
 #SBATCH --tasks-per-node=1
 #SBATCH --mem=20G
 #SBATCH --export=ALL
 #SBATCH --gres=gpu:1
-#SBATCH --time=23:55:00
+#SBATCH --time=6:00:00
 
 module load singularity
 
