@@ -6,8 +6,8 @@ from openmmtools.constants import kB
 # from openmmtools import respa, utils
 # from openmmtools.integrators import PrettyPrintableIntegrator as PrettyPrintableIntegrator
 from openmmtools.integrators import ThermostatedIntegrator
-
-import custom_integrator as ci
+from ActivePolymer import CustomBrownianIntegrator
+#import custom_integrator as ci
 
 class PersistentBrownianIntegrator(ThermostatedIntegrator):
     def __init__(self,
@@ -15,7 +15,7 @@ class PersistentBrownianIntegrator(ThermostatedIntegrator):
                 temperature=120.0,
                 collision_rate=0.1,
                 persistent_time=10.0,
-                # constraint_tolerance=1e-8,
+                constraint_tolerance=1e-8,
                  ):
 
         # Create a new CustomIntegrator
@@ -24,29 +24,26 @@ class PersistentBrownianIntegrator(ThermostatedIntegrator):
         kbT = kB * temperature
         
         #add globall variables
-        # self.addGlobalVariable("kbT", kbT)
+        self.addGlobalVariable("kbT", kbT)
         self.addGlobalVariable("g", collision_rate)
         self.addGlobalVariable("Ta", persistent_time)
-        # self.setConstraintTolerance(constraint_tolerance)
+        self.setConstraintTolerance(constraint_tolerance)
 
         self.addPerDofVariable("x1", 0) # for constraints
 
         self.addUpdateContextState()
         #update velocities. note velocities are active and not derived from positions.
         self.addComputePerDof("v", "(exp(- dt / Ta ) * v) + ((sqrt(1 - exp( - 2 * dt / Ta)) * f0 / g) * gaussian)")
+        self.addConstrainVelocities()
 
-        self.addComputePerDof("x", "x + (v * dt) + (dt * f / g) + (sqrt(2 * (kT / g) * dt) * gaussian)")
-        # self.addComputePerDof("x", "x")
-
-        # self.addComputePerDof("x1", "x")  # save pre-constraint positions in x1
-        # self.addConstrainPositions()
+        self.addComputePerDof("x", "x + (v * dt) + (dt * f / g) + (sqrt(2 * (kbT / g) * dt) * gaussian)")
+        
         #remove the contribution from force group 0: the persistent force, which is already taken into account in the v*dt term
         self.addComputePerDof("x", "x - (dt  * f0 / g)")
 
         self.addComputePerDof("x1", "x")  # save pre-constraint positions in x1
         self.addConstrainPositions()  # x is now constrained
-        # self.addComputePerDof("v", "v+(x-x1)/dt")
-        self.addConstrainVelocities()
+
 
 
 def ActiveMonomer(
@@ -66,16 +63,19 @@ def ActiveMonomer(
     self.activeCorrTime=active_corr_time
 
     #set up integrator
+    
     integrator=PersistentBrownianIntegrator(
                 timestep=self.timestep, 
                 collision_rate=self.collisionRate,
                 temperature=self.temperature,
                 persistent_time=self.activeCorrTime,
                 )
-    
-    # integrator=ci.CustomBrownianIntegrator(temperature=self.temperature*unit.kelvin,
-    #                                         noise_corr=self.activeCorrTime*unit.picoseconds)
-
+    """
+    integrator=CustomBrownianIntegrator(temperature=self.temperature * unit.kelvin,
+                                        timestep=self.timestep * unit.picoseconds,
+                                        collision_rate=self.collisionRate / unit.picoseconds,
+                                           noise_corr=self.activeCorrTime * unit.picoseconds)
+    """
     self.setup(platform=platform,integrator=integrator,)  
     self.saveFolder(outpath)
 
@@ -104,7 +104,7 @@ def ActiveMonomer(
     return self
 
 
-def addNLBonds(self, kfb=30.0):
+def addHarmonicBonds(self, kfb=30.0):
     
     R"""
     Adds FENE (Finite Extensible Nonlinear Elastic) bonds between neighbor loci :math:`i` and :math:`i+1` according to "Halverson, J.D., Lee, W.B., Grest, G.S., Grosberg, A.Y. and Kremer, K., 2011. Molecular dynamics simulation study of nonconcatenated ring polymers in a melt. I. Statics. The Journal of chemical physics, 134(20), p.204904".
@@ -117,28 +117,28 @@ def addNLBonds(self, kfb=30.0):
 
     for start, end, isRing in self.chains:
         for j in range(start, end):
-            addBond(self,j, j + 1, kfb=kfb)
+            addHarmonicBond_ij(self,j, j + 1, kfb=kfb)
             self.bondsForException.append((j, j + 1))
 
         if isRing:
-            addBond(self, start, end, distance=1, kfb=kfb)
+            addHarmonicBond_ij(self, start, end, distance=1, kfb=kfb)
             self.bondsForException.append((start, end ))
 
-    self.metadata["NLBond"] = repr({"kfb": kfb})
+    self.metadata["HarmonicBond"] = repr({"kfb": kfb})
     
-def _initNLBond(self, kfb=30):
+def _initHarmonicBond(self, kfb=30):
     R"""
     Internal function that inits FENE bond force.
     """
-    if "NLBond" not in list(self.forceDict.keys()):
+    if "HarmonicBond" not in list(self.forceDict.keys()):
         force = ("0.5 * kfb * (r-r0)*(r-r0)")
         bondforceGr = self.mm.CustomBondForce(force)
         bondforceGr.addGlobalParameter("kfb", kfb)
         bondforceGr.addGlobalParameter("r0", 1.) 
             
-        self.forceDict["NLBond"] = bondforceGr
+        self.forceDict["HarmonicBond"] = bondforceGr
     
-def addBond(self, i, j, distance=None, kfb=30):
+def addHarmonicBond_ij(self, i, j, distance=None, kfb=30):
     
     R"""
     Adds bonds between loci :math:`i` and :math:`j` 
@@ -161,6 +161,33 @@ def addBond(self, i, j, distance=None, kfb=30):
         distance = self.length_scale * distance
     distance = float(distance)
 
-    _initNLBond(self, kfb=kfb)
-    self.forceDict["NLBond"].addBond(int(i), int(j), [])
+    _initHarmonicBond(self, kfb=kfb)
+    self.forceDict["HarmonicBond"].addBond(int(i), int(j), [])
 
+def addSelfAvoidance(self, Ecut=4.0):
+        
+    R"""
+        Adds a soft-core repulsive interaction that allows chain crossing, which represents the activity of topoisomerase II. Details can be found in the following publications: 
+        
+            - Oliveira Jr., A.B., Contessoto, V.G., Mello, M.F. and Onuchic, J.N., 2021. A scalable computational approach for simulating complexes of multiple chromosomes. Journal of Molecular Biology, 433(6), p.166700.
+            - Di Pierro, M., Zhang, B., Aiden, E.L., Wolynes, P.G. and Onuchic, J.N., 2016. Transferable model for chromosome architecture. Proceedings of the National Academy of Sciences, 113(43), pp.12168-12173.
+            - Naumova, N., Imakaev, M., Fudenberg, G., Zhan, Y., Lajoie, B.R., Mirny, L.A. and Dekker, J., 2013. Organization of the mitotic chromosome. Science, 342(6161), pp.948-953.
+
+        Args:
+
+            Ecut (float, required):
+                Energy cost for the chain passing in units of :math:`k_{b}T`. (Default value = 4.0).
+          """
+    
+    Ecut = Ecut*self.Epsilon
+    
+    repul_energy = ("0.5 * Ecut * (1.0 + tanh(1.0 - (20.0 * (r - r0))))")
+    
+    self.forceDict["SelfAvoidance"] = self.mm.CustomNonbondedForce(repul_energy)
+    repulforceGr = self.forceDict["SelfAvoidance"]
+    repulforceGr.addGlobalParameter('Ecut', Ecut)
+    repulforceGr.addGlobalParameter('r0', 0.9)
+    repulforceGr.setCutoffDistance(3.0)
+
+    for _ in range(self.N):
+        repulforceGr.addParticle(())
