@@ -15,7 +15,7 @@ class PersistentBrownianIntegrator(ThermostatedIntegrator):
                 temperature=120.0,
                 collision_rate=0.1,
                 persistent_time=10.0,
-                constraint_tolerance=1e-8,
+                # constraint_tolerance=1e-8,
                  ):
 
         # Create a new CustomIntegrator
@@ -24,26 +24,29 @@ class PersistentBrownianIntegrator(ThermostatedIntegrator):
         kbT = kB * temperature
         
         #add globall variables
-        self.addGlobalVariable("kbT", kbT)
+        # self.addGlobalVariable("kbT", kbT)
         self.addGlobalVariable("g", collision_rate)
         self.addGlobalVariable("Ta", persistent_time)
-        self.setConstraintTolerance(constraint_tolerance)
+        # self.setConstraintTolerance(constraint_tolerance)
 
         self.addPerDofVariable("x1", 0) # for constraints
 
         self.addUpdateContextState()
         #update velocities. note velocities are active and not derived from positions.
         self.addComputePerDof("v", "(exp(- dt / Ta ) * v) + ((sqrt(1 - exp( - 2 * dt / Ta)) * f0 / g) * gaussian)")
-        self.addConstrainVelocities()
 
-        self.addComputePerDof("x", "x + (v * dt) + (dt * f / g) + (sqrt(2 * (kbT / g) * dt) * gaussian)")
-        
+        self.addComputePerDof("x", "x + (v * dt) + (dt * f / g) + (sqrt(2 * (kT / g) * dt) * gaussian)")
+        # self.addComputePerDof("x", "x")
+
+        # self.addComputePerDof("x1", "x")  # save pre-constraint positions in x1
+        # self.addConstrainPositions()
         #remove the contribution from force group 0: the persistent force, which is already taken into account in the v*dt term
         self.addComputePerDof("x", "x - (dt  * f0 / g)")
 
         self.addComputePerDof("x1", "x")  # save pre-constraint positions in x1
         self.addConstrainPositions()  # x is now constrained
-
+        # self.addComputePerDof("v", "v+(x-x1)/dt")
+        self.addConstrainVelocities()
 
 
 def ActiveMonomer(
