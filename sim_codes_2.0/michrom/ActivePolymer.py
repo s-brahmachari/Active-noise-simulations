@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 # Energy unit used by OpenMM unit system
 _OPENMM_ENERGY_UNIT = unit.kilojoules_per_mole
 
+
 #=====================================================
 
 def ActivePolymer(

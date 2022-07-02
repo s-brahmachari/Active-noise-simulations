@@ -44,8 +44,6 @@ class PersistentBrownianIntegrator(ThermostatedIntegrator):
         self.addComputePerDof("x1", "x")  # save pre-constraint positions in x1
         self.addConstrainPositions()  # x is now constrained
 
-
-
 def ActiveMonomer(
         time_step=0.001, collision_rate=0.1, temperature=120.0,
         name="ActiveMonomer", active_corr_time=10.0, act_seq=None,
@@ -102,7 +100,6 @@ def ActiveMonomer(
         print('Critical Error! Active force not added.')
 
     return self
-
 
 def addHarmonicBonds(self, kfb=30.0):
     
@@ -191,3 +188,67 @@ def addSelfAvoidance(self, Ecut=4.0):
 
     for _ in range(self.N):
         repulforceGr.addParticle(())
+
+def addSphericalConfinement(self, R0=None, vol_frac=None, method='FlatBottomHarmonic', kr=5.0):
+    
+    try:
+        if R0 is None and vol_frac is None:
+            print("Error! specify either R (radius of confinement) or vol_frac (confinement volume fraction)")
+            raise ValueError
+    
+        elif R0 is None and vol_frac is not None:
+            R0=(self.N / (8 * vol_frac))**(1 / 3)
+            vol_frac = float(vol_frac)
+    
+        elif R0 is not None and vol_frac is None:
+            R0=float(R0)
+            vol_frac= self.N / (2 * R0)**3
+        
+        if method=='LennardJones':
+            print("-------\nImplementing Lennard-Jones confinement:\n\Radius: {0:.2f} \nVolume fraction: {1:.3f}\n".format(R0,vol_frac))
+
+            LJ_energy="(4 * GROSe * (GROSs/r)^12 + GROSe) * step(GROScut - r); r= R - sqrt(x^2 + y^2 + z^2) "
+            LJ_conf_fg = self.mm.CustomExternalForce(LJ_energy)
+            LJ_conf_fg.addGlobalParameter('R', R0)
+            LJ_conf_fg.addGlobalParameter('GROSe', 1.0)
+            LJ_conf_fg.addGlobalParameter('GROSs', 1.0)
+            LJ_conf_fg.addGlobalParameter("GROScut", 2.**(1./6.))
+        
+            self.forceDict["RadialConfinement"] = LJ_conf_fg
+        
+        elif method=='FlatBottomHarmonic':
+            print("-------\nImplementing Flat-Bottom Harmonic confinement:\nRadius: {0:.2f} \nVolume fraction: {1:.3f} \nStiffness: {2:.2f}\n".format(R0,vol_frac,kr))
+
+            FlatBottomHarm_energy="step(r-r_res) * 0.5 * kr * (r-r_res)^2; r=sqrt(x*x+y*y+z*z)"
+            FBH_conf_fg = self.mm.CustomExternalForce(FlatBottomHarm_energy)
+            FBH_conf_fg.addGlobalParameter('r_res', R0)
+            FBH_conf_fg.addGlobalParameter('kr', kr)
+            
+            self.forceDict["RadialConfinement"] = FBH_conf_fg
+
+        else:
+            print("ERROR!!!\n\
+                method='{}' is not a valid input. \nChoose either 'FlatBottomHarmonic' or 'LennardJones'.".format(method))
+            raise ValueError
+            
+        for i in range(self.N):
+            self.forceDict["RadialConfinement"].addParticle(i, [])
+
+        self.ConfinementRadius = R0
+    
+    except (ValueError):
+        print("ERROR!!!\nNO confinement potential added!")
+        pass
+
+def addCylindricalConfinement(self, r_conf=5.0, z_conf=10.0, kr=30.0):
+    cyl_conf_energy="step(r_xy-r_res) * 0.5 * kr * (r_xy-r_res)^2 + step(z^2-zconf^2) * 0.5 * kr * (z-zconf)^2; r_xy=sqrt(x*x+y*y)"
+    
+    cyl_conf_fg = self.mm.CustomExternalForce(cyl_conf_energy)
+    cyl_conf_fg.addGlobalParameter('r_res', r_conf)
+    cyl_conf_fg.addGlobalParameter('kr', kr)
+    cyl_conf_fg.addGlobalParameter('zconf', z_conf)
+    
+    self.forceDict["CylindricalConfinement"]=cyl_conf_fg
+
+    for i in range(self.N):
+        self.forceDict["CylindricalConfinement"].addParticle(i, [])
